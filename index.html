@@ -366,22 +366,13 @@ function showErr(msg){ errorSection.style.display='block'; errorBox.textContent=
 function clearErr(){ errorSection.style.display='none'; }
 
 async function callClaude(base64, mediaType, promptText){
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await fetch("/api/analyze", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-          { type: "text", text: promptText }
-        ]
-      }]
-    })
+    body: JSON.stringify({ image: base64, mediaType: mediaType, prompt: promptText })
   });
   const data = await response.json();
+  if (data.error) throw new Error(data.error);
   const textBlock = data.content.find(b => b.type === 'text');
   if (!textBlock) throw new Error('AI response empty');
   let cleaned = textBlock.text.replace(/```json|```/g, '').trim();
