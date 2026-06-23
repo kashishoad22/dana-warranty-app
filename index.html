@@ -123,6 +123,7 @@
   .tag.ok{ background:#dff3e6; color:var(--green); }
   .part-item .obs .line{ color:var(--navy); font-weight:600; line-height:1.4; }
   .remove-part{ background:none;border:none;color:var(--red);font-size:11px;cursor:pointer; align-self:flex-end; padding:6px 10px; }
+  .stage-select{ width:100%; margin-top:8px; font-size:11px; padding:5px 6px; border:1px solid var(--border); border-radius:4px; background:#fff; color:var(--navy); font-family:inherit; }
 
   .btn{ width:100%; padding:13px; border:none; border-radius:5px; font-weight:700; font-size:13.5px; cursor:pointer; letter-spacing:0.3px; }
   .btn-primary{ background:var(--dana-blue); color:#fff; }
@@ -163,7 +164,9 @@
   .cause-card .cc-desc{ font-size:12px; color:var(--navy); line-height:1.5; }
   .manual-note{ font-size:11.5px; color:var(--amber); background:#fdf3e0; border:1px solid #f0d9a6; padding:9px 11px; border-radius:5px; margin-top:10px; line-height:1.5; }
   .dim-table input{ width:100%; border:none; background:transparent; font:inherit; font-weight:600; color:var(--navy); }
-  .dim-table td{ font-size:11.5px; }
+  .dim-table td{ font-size:10.5px; padding:5px 4px; }
+  .dim-table td.rk{ width:30%; font-size:10.5px; }
+  .dim-table input::placeholder{ color:#b9c2cf; }
   .report-footer{ padding:14px 22px; background:var(--navy); color:#cfd8e3; font-size:10.5px; display:flex; justify-content:space-between; }
   .btn-pdf{ background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; }
   .btn-pdf:hover{ background:#0f1825; }
@@ -413,11 +416,14 @@ cardInput.addEventListener('change', async (e) => {
   "registration_date": "Registration Date",
   "repair_date": "Repair date",
   "mileage": "Mileage (with km)",
-  "causal_part_no": "Causal Part No",
-  "causal_part_name": "Causal Part Name",
-  "customer_complaint": "Customer Complaint text",
+  "diff_assy_mfg_date": "Diff Assy Mfg. Date — agar likha ho",
+  "customer_issue_description": "Customer Complaint / Customer Issue description text",
   "dealer_observation": "Dealer Observation text",
-  "workshop_name": "Workshop Name"
+  "workshop_name": "Workshop Name",
+  "workshop_location": "Workshop Location — agar alag se likha ho",
+  "warranty_meeting_date": "Warranty Meeting Date — agar likha ho",
+  "causal_part_no": "Causal Part No",
+  "causal_part_name": "Causal Part Name"
 }
 
 Agar koi field clearly nahi padh paa rahe, us field mein "Manual check karo" likho — andaza mat lagao.`);
@@ -429,9 +435,11 @@ Agar koi field clearly nahi padh paa rahe, us field mein "Manual check karo" lik
     const rows = [
       ['VIN No','vin_no'],['Claim No','claim_no'],['Model','model'],
       ['Registration Date','registration_date'],['Repair Date','repair_date'],['Mileage','mileage'],
-      ['Causal Part No','causal_part_no'],['Causal Part Name','causal_part_name'],
-      ['Customer Complaint','customer_complaint'],['Dealer Observation','dealer_observation'],
-      ['Workshop Name','workshop_name']
+      ['Diff Assy Mfg. Date','diff_assy_mfg_date'],
+      ['Customer Issue Description','customer_issue_description'],['Dealer Observation','dealer_observation'],
+      ['Workshop Name','workshop_name'],['Workshop Location','workshop_location'],
+      ['Warranty Meeting Date','warranty_meeting_date'],
+      ['Causal Part No','causal_part_no'],['Causal Part Name','causal_part_name']
     ];
     document.getElementById('cardFieldTable').innerHTML = rows.map(([label,key]) =>
       `<tr><td class="k">${label}</td><td><input data-key="${key}" value="${esc(cardData[key])}"/></td></tr>`
@@ -465,7 +473,7 @@ partInput.addEventListener('change', async (e) => {
   const imgSrc = `data:${mediaType};base64,${b64}`;
 
   const idx = parts.length;
-  parts.push({ imgSrc, data: null, loading: true });
+  parts.push({ imgSrc, data: null, loading: true, stage: 'teardown' });
   renderParts();
   checkReady();
 
@@ -504,10 +512,20 @@ function renderParts(){
         <div class="obs">
           <span class="tag ${isDefect ? 'defect':'ok'}">${esc(d.component)} · ${esc(d.defect_type)}</span>
           <div class="line" contenteditable="true" data-idx="${i}">${esc(d.observation_line)}</div>
+          <select class="stage-select" data-stageidx="${i}">
+            <option value="teardown" ${p.stage==='teardown'?'selected':''}>Tear Down (disassembled)</option>
+            <option value="before" ${p.stage==='before'?'selected':''}>Before Tear Down (as received)</option>
+          </select>
         </div>
         <button class="remove-part" data-remove="${i}">Hatao</button>
       </div>`;
   }).join('');
+
+  partGrid.querySelectorAll('[data-stageidx]').forEach(sel => {
+    sel.addEventListener('change', () => {
+      parts[parseInt(sel.dataset.stageidx)].stage = sel.value;
+    });
+  });
 
   partGrid.querySelectorAll('[data-remove]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -574,37 +592,56 @@ generateBtn.addEventListener('click', () => {
       <div class="report-section">
         <h3>Failure History of the Vehicle</h3>
         <table class="r-table">
-          <tr><td class="rk">VIN No.</td><td class="rv">${esc(liveCard.vin_no)}</td></tr>
+          <tr><td class="rk">Vin No.</td><td class="rv">${esc(liveCard.vin_no)}</td></tr>
           <tr><td class="rk">Claim No.</td><td class="rv">${esc(liveCard.claim_no)}</td></tr>
           <tr><td class="rk">Registration Date</td><td class="rv">${esc(liveCard.registration_date)}</td></tr>
           <tr><td class="rk">Repair Date</td><td class="rv">${esc(liveCard.repair_date)}</td></tr>
           <tr><td class="rk">Mileage</td><td class="rv">${esc(liveCard.mileage)}</td></tr>
+          <tr><td class="rk">Diff Assy Mfg. Date</td><td class="rv">${esc(liveCard.diff_assy_mfg_date)}</td></tr>
+          <tr><td class="rk">Customer Issue description</td><td class="rv">${esc(liveCard.customer_issue_description)}</td></tr>
+          <tr><td class="rk">Dealer Observation</td><td class="rv">${esc(liveCard.dealer_observation)}</td></tr>
+          <tr><td class="rk">Workshop Name</td><td class="rv">${esc(liveCard.workshop_name)}</td></tr>
+          <tr><td class="rk">Workshop Location</td><td class="rv">${esc(liveCard.workshop_location)}</td></tr>
+          <tr><td class="rk">Warranty Meeting Date</td><td class="rv">${esc(liveCard.warranty_meeting_date)}</td></tr>
           <tr><td class="rk">Causal Part No.</td><td class="rv">${esc(liveCard.causal_part_no)}</td></tr>
           <tr><td class="rk">Causal Part Name</td><td class="rv">${esc(liveCard.causal_part_name)}</td></tr>
-          <tr><td class="rk">Customer Complaint</td><td class="rv">${esc(liveCard.customer_complaint)}</td></tr>
-          <tr><td class="rk">Dealer Observation</td><td class="rv">${esc(liveCard.dealer_observation)}</td></tr>
-          <tr><td class="rk">Workshop</td><td class="rv">${esc(liveCard.workshop_name)}</td></tr>
         </table>
         <img class="card-thumb" src="${cardImgB64}"/>
       </div>
 
       <div class="report-section">
-        <h3>Dimensional Observations <span style="font-size:10.5px; font-weight:600; color:var(--amber);">(manual entry)</span></h3>
+        <h3>Dimensional Observations <span style="font-size:10.5px; font-weight:600; color:var(--amber);">(manual entry — instrument data)</span></h3>
         <table class="r-table dim-table">
-          <tr><td class="rk">Backlash</td><td class="rv"><input placeholder="-- manual entry --"/></td></tr>
-          <tr><td class="rk">TTTR</td><td class="rv"><input placeholder="-- manual entry --"/></td></tr>
-          <tr><td class="rk">PTTR</td><td class="rv"><input placeholder="-- manual entry --"/></td></tr>
-          <tr><td class="rk">Contact Pattern</td><td class="rv"><input placeholder="-- manual entry --"/></td></tr>
+          <tr style="background:var(--navy);">
+            <td class="rk" style="color:#fff; font-weight:700;">Parameter</td>
+            <td class="rv" style="color:#fff; font-weight:700;">Build Data</td>
+            <td class="rv" style="color:#fff; font-weight:700;">Returned Part</td>
+            <td class="rv" style="color:#fff; font-weight:700;">Gap</td>
+            <td class="rv" style="color:#fff; font-weight:700;">Remarks</td>
+          </tr>
+          ${[
+            "CS Number","MFG Date","Gear No","TTTR","PTTR",
+            "Contact Pattern (Cost & Drive side)","Backlash","Shim Call","Shim Actual",
+            "CF Runout","Leak Testing","Lock Plate Torque","Thread Adjuster Torq",
+            "Bearing Cap Torq","Collapsable Spacer Length"
+          ].map(param => `
+          <tr>
+            <td class="rk">${param}</td>
+            <td class="rv"><input placeholder="--"/></td>
+            <td class="rv"><input placeholder="--"/></td>
+            <td class="rv"><input placeholder="--"/></td>
+            <td class="rv"><input placeholder="OK/NG"/></td>
+          </tr>`).join('')}
         </table>
         <div class="manual-note">Yeh values measuring instrument se aati hain — gauge ki digital screen ki photo se bhi padhna future mein add ho sakta hai.</div>
       </div>
 
-      <div class="report-section">
-        <h3>Visual Check — Tear Down</h3>
-        <div class="r-photo-row">
-          ${parts.map(p => {
-            const isDefect = p.data.defect_type && !/no-visible-defect|error/i.test(p.data.defect_type);
-            return `
+      ${(() => {
+        const beforeParts = parts.filter(p => p.stage === 'before');
+        const teardownParts = parts.filter(p => p.stage !== 'before');
+        const renderPhotoRow = (list) => list.map(p => {
+          const isDefect = p.data.defect_type && !/no-visible-defect|error/i.test(p.data.defect_type);
+          return `
             <div class="r-photo-item">
               <img src="${p.imgSrc}"/>
               <div>
@@ -612,9 +649,24 @@ generateBtn.addEventListener('click', () => {
                 <div class="r-obs-text">${esc(p.data.observation_line)}</div>
               </div>
             </div>`;
-          }).join('')}
-        </div>
-      </div>
+        }).join('');
+        let html = '';
+        if (beforeParts.length){
+          html += `
+          <div class="report-section">
+            <h3>Visual Check — Before Tear Down</h3>
+            <div class="r-photo-row">${renderPhotoRow(beforeParts)}</div>
+          </div>`;
+        }
+        if (teardownParts.length){
+          html += `
+          <div class="report-section">
+            <h3>Visual Check — Tear Down</h3>
+            <div class="r-photo-row">${renderPhotoRow(teardownParts)}</div>
+          </div>`;
+        }
+        return html;
+      })()}
 
       <div class="report-section">
         <h3>Conclusion</h3>
