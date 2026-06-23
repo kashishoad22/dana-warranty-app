@@ -6,6 +6,7 @@
 <title>DANA Warranty Report System</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-app-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-firestore-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -171,6 +172,16 @@
   .btn-pdf{ background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; }
   .btn-pdf:hover{ background:#0f1825; }
   .btn-pdf:disabled{ background:#9fb3c8; cursor:not-allowed; }
+
+  .history-list{ display:flex; flex-direction:column; gap:10px; padding:16px; }
+  .history-item{ background:var(--card); border:1px solid var(--border); border-radius:6px; padding:12px 14px; cursor:pointer; transition:background 0.15s; }
+  .history-item:hover{ background:var(--gray-row); }
+  .history-item .hi-top{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; color:var(--navy); }
+  .history-item .hi-sub{ font-size:11px; color:var(--text-muted); margin-top:4px; }
+  .history-item .hi-meta{ font-size:10px; color:var(--text-muted); margin-top:6px; }
+  .history-detail{ background:var(--card); border:1px solid var(--border); border-radius:6px; padding:18px; margin-top:10px; }
+  .history-detail h4{ font-size:14px; color:var(--navy); margin-bottom:10px; }
+  .history-empty{ text-align:center; color:var(--text-muted); font-size:13px; padding:30px 16px; }
 </style>
 </head>
 <body>
@@ -204,6 +215,11 @@
       </div>
     </div>
     <div class="role-banner" id="roleBanner" style="display:none"></div>
+
+    <div class="body-pad" style="padding-bottom:0; gap:0;">
+      <button class="btn" id="historyBtn" style="background:var(--navy); color:#fff; margin-bottom:0;">📋 Report History Dekho</button>
+    </div>
+    <div id="historySection"></div>
 
     <div class="body-pad">
 
@@ -273,6 +289,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const db = firebase.firestore();
 
 // Naya engineer/manager/quality add karna ho to yahan email + role daalo:
 const ROLE_MAP = {
@@ -330,6 +347,8 @@ const step2Head = document.getElementById('step2Head');
 
 const generateBtn = document.getElementById('generateBtn');
 const reportSection = document.getElementById('reportSection');
+const historyBtn = document.getElementById('historyBtn');
+const historySection = document.getElementById('historySection');
 const errorSection = document.getElementById('errorSection');
 const errorBox = document.getElementById('errorBox');
 
@@ -693,6 +712,89 @@ generateBtn.addEventListener('click', () => {
     <button class="btn btn-pdf" id="pdfBtn" onclick="downloadPDF()">⬇️ Download as PDF</button>
   `;
   reportSection.scrollIntoView({behavior:'smooth', block:'start'});
+
+  // Save to history (Firestore) — text data only, no photos
+  db.collection('reports').add({
+    vin_no: liveCard.vin_no || '',
+    claim_no: liveCard.claim_no || '',
+    model: liveCard.model || '',
+    causal_part_name: liveCard.causal_part_name || '',
+    registration_date: liveCard.registration_date || '',
+    repair_date: liveCard.repair_date || '',
+    mileage: liveCard.mileage || '',
+    workshop_name: liveCard.workshop_name || '',
+    workshop_location: liveCard.workshop_location || '',
+    customer_issue_description: liveCard.customer_issue_description || '',
+    dealer_observation: liveCard.dealer_observation || '',
+    reportNo: reportNo,
+    conclusionItems: conclusionItems,
+    finalNote: finalNote,
+    causeMap: causeMap,
+    createdBy: (auth.currentUser && auth.currentUser.email) || 'unknown',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(err => console.error('History save failed:', err));
+});
+
+let historyOpen = false;
+historyBtn.addEventListener('click', async () => {
+  historyOpen = !historyOpen;
+  if (!historyOpen){
+    historySection.innerHTML = '';
+    historyBtn.textContent = '📋 Report History Dekho';
+    return;
+  }
+  historyBtn.textContent = '📋 History Band Karo';
+  historySection.innerHTML = '<div class="history-empty">Loading...</div>';
+  try{
+    const snap = await db.collection('reports').orderBy('createdAt', 'desc').limit(30).get();
+    if (snap.empty){
+      historySection.innerHTML = '<div class="history-empty">Abhi koi report history mein nahi hai. Pehli report banao!</div>';
+      return;
+    }
+    historySection.innerHTML = `<div class="history-list" id="historyList"></div>`;
+    const listEl = document.getElementById('historyList');
+    snap.forEach(doc => {
+      const d = doc.data();
+      const dateStr = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleString('en-IN') : '—';
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.innerHTML = `
+        <div class="hi-top"><span>${esc(d.causal_part_name || 'Part')}</span><span>${esc(d.claim_no || '—')}</span></div>
+        <div class="hi-sub">VIN: ${esc(d.vin_no || '—')} &nbsp;·&nbsp; ${esc(d.model || '—')}</div>
+        <div class="hi-meta">${esc(d.createdBy || '')} &nbsp;·&nbsp; ${dateStr}</div>
+      `;
+      item.addEventListener('click', () => {
+        const existing = item.nextElementSibling;
+        if (existing && existing.classList.contains('history-detail')){ existing.remove(); return; }
+        const detail = document.createElement('div');
+        detail.className = 'history-detail';
+        detail.innerHTML = `
+          <h4>${esc(d.causal_part_name || 'Part')} — Failure Analysis Report</h4>
+          <table class="r-table">
+            <tr><td class="rk">Vin No.</td><td class="rv">${esc(d.vin_no)}</td></tr>
+            <tr><td class="rk">Claim No.</td><td class="rv">${esc(d.claim_no)}</td></tr>
+            <tr><td class="rk">Registration Date</td><td class="rv">${esc(d.registration_date)}</td></tr>
+            <tr><td class="rk">Repair Date</td><td class="rv">${esc(d.repair_date)}</td></tr>
+            <tr><td class="rk">Mileage</td><td class="rv">${esc(d.mileage)}</td></tr>
+            <tr><td class="rk">Customer Issue description</td><td class="rv">${esc(d.customer_issue_description)}</td></tr>
+            <tr><td class="rk">Dealer Observation</td><td class="rv">${esc(d.dealer_observation)}</td></tr>
+            <tr><td class="rk">Workshop Name</td><td class="rv">${esc(d.workshop_name)}</td></tr>
+            <tr><td class="rk">Workshop Location</td><td class="rv">${esc(d.workshop_location)}</td></tr>
+          </table>
+          <div style="height:12px"></div>
+          <h4>Conclusion</h4>
+          <ol class="conclusion-list">
+            ${(d.conclusionItems||[]).map(i => `<li>${esc(i)}</li>`).join('')}
+            <li class="action">${esc(d.finalNote||'')}</li>
+          </ol>
+        `;
+        item.after(detail);
+      });
+      listEl.appendChild(item);
+    });
+  }catch(err){
+    historySection.innerHTML = `<div class="history-empty">History load nahi ho payi: ${esc(err.message)}</div>`;
+  }
 });
 
 async function downloadPDF(){
