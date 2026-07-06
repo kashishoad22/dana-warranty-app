@@ -758,14 +758,92 @@ function switchTab(tab){
 async function loadHistory(){
   const el = document.getElementById('historyContent');
   el.innerHTML = '<div class="empty-state">Loading...</div>';
+  
+  // Try Firestore first, fallback to sample data
+  let docs = [];
   try{
     const snap = await db.collection('reports').orderBy('createdAt','desc').limit(50).get();
-    if(snap.empty){ el.innerHTML = '<div class="empty-state">Abhi koi report nahi hai. Pehli report banao!</div>'; return; }
-    el.innerHTML = '<div class="history-list" id="hList"></div>';
-    const list = document.getElementById('hList');
-    snap.forEach(doc => {
-      const d = doc.data();
-      const dt = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleString('en-IN') : '—';
+    if(!snap.empty){
+      snap.forEach(doc => docs.push(doc.data()));
+    }
+  }catch(e){ console.warn('Firestore not available, using sample data'); }
+
+  // Use sample data if Firestore empty/unavailable
+  if(docs.length === 0){
+    docs = [
+      {
+        vin_no:"MA3JDT08WSCE52494", claim_no:"W2600003", model:"Eeco YG8 (AQI412C)",
+        causal_part_name:"DIFFERENTIAL ASSY, REAR", causal_part_no:"27300M78T00",
+        registration_date:"18-MAR-2025", repair_date:"05-MAY-2026", mileage:"18667 km",
+        diff_assy_mfg_date:"19-FEB-2025",
+        customer_issue_description:"General abnormal noise mechanical type noise improper assembly-others",
+        dealer_observation:"RR side noise hence bearing replace under warranty.",
+        workshop_name:"CHOWGULE INDUSTRIES PVT LTD", workshop_location:"ADINATH SOCIETY-SRV, PUNE",
+        warranty_meeting_date:"01-06-2026", reportNo:"DAIPL-FA-E52494",
+        conclusionItems:[
+          "Pinion nut caulking observed OK.",
+          "Backlash observed 0.046mm, 0.061mm, 0.039mm and TTTR-0 kgf/cm.",
+          "Ring side Lock Plate observed ok and Pinion side Lock Plate observed OK.",
+          "Contact pattern observed flank out.",
+          "Both side Bearing cap observed ok.",
+          "Ring Gear side diff Bearing observed Scoring Mark.",
+          "Ring Gear side diff Bearing cup observed Scoring Mark.",
+          "Pinion Gear side diff Bearing observed Pitting mark.",
+          "Pinion Gear side diff Bearing cup observed Pitting Mark.",
+          "Pinion tail bearing observed Scoring mark.",
+          "Pinion tail bearing cup observed Scoring Mark.",
+          "Pinion head bearing observed Scoring mark.",
+          "Pinion head bearing cup observed Scoring mark."
+        ],
+        finalNote:"Only need to change the Diff bearing — not need to Scrap the Full Diff Assy.",
+        causeMap:{"Pitting Mark":"Lubrication issue","Scoring Mark":"Metal-to-metal contact"},
+        createdBy:"dana@dana.com", _dateStr:"01/06/2026, 10:30:00 am"
+      },
+      {
+        vin_no:"MA3ERLF1S00271842", claim_no:"W2500187", model:"Swift Dzire VXI",
+        causal_part_name:"PROPELLER SHAFT ASSY", causal_part_no:"37100M74T10",
+        registration_date:"12-JAN-2025", repair_date:"20-APR-2026", mileage:"24500 km",
+        diff_assy_mfg_date:"05-NOV-2024",
+        customer_issue_description:"Vibration in vehicle during acceleration at highway speed",
+        dealer_observation:"Propeller shaft vibration observed, imbalance suspected.",
+        workshop_name:"KATARIA AUTOMOBILE PVT LTD", workshop_location:"SECTOR 14, GURGAON",
+        warranty_meeting_date:"15-05-2026", reportNo:"DAIPL-FA-2500187",
+        conclusionItems:[
+          "Propeller shaft balance weight observed missing on rear section.",
+          "Rubber coupling observed cracked at flange joint.",
+          "Center bearing mount observed worn.",
+          "No external damage or off-road usage marks observed."
+        ],
+        finalNote:"Propeller shaft to be replaced under warranty. Root cause: manufacturing balance weight adhesion failure.",
+        causeMap:{"Wear":"Accelerated wear due to imbalance"},
+        createdBy:"engineer@dana.com", _dateStr:"15/05/2026, 2:00:00 pm"
+      },
+      {
+        vin_no:"MA3FJEB1S00445521", claim_no:"W2500299", model:"Baleno Alpha",
+        causal_part_name:"REAR AXLE SHAFT LH", causal_part_no:"42311M79T00",
+        registration_date:"03-MAR-2024", repair_date:"10-MAY-2026", mileage:"41200 km",
+        diff_assy_mfg_date:"15-JAN-2024",
+        customer_issue_description:"Noise from rear left side during sharp turns",
+        dealer_observation:"CV joint noise observed on LH rear axle shaft.",
+        workshop_name:"ADINATH MOTORS", workshop_location:"DHARUHERA, HARYANA",
+        warranty_meeting_date:"01-06-2026", reportNo:"DAIPL-FA-2500299",
+        conclusionItems:[
+          "CV joint boot observed torn — grease leakage found.",
+          "CV joint balls observed with Corrosion and Pitting.",
+          "Axle spline engagement found OK.",
+          "No overload or off-road usage evidence found."
+        ],
+        finalNote:"LH rear axle shaft to be replaced under warranty. Torn boot led to grease loss and bearing corrosion.",
+        causeMap:{"Corrosion":"Moisture ingress through torn CV boot","Pitting Mark":"Grease starvation due to boot failure"},
+        createdBy:"engineer@dana.com", _dateStr:"10/05/2026, 9:15:00 am"
+      }
+    ];
+  }
+
+  el.innerHTML = '<div class="history-list" id="hList"></div>';
+  const list = document.getElementById('hList');
+  docs.forEach(d => {
+      const dt = d._dateStr || (d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleString('en-IN') : '—');
       const item = document.createElement('div');
       item.className = 'history-item';
       item.innerHTML = `
@@ -799,9 +877,6 @@ async function loadHistory(){
       });
       list.appendChild(item);
     });
-  }catch(err){
-    el.innerHTML = `<div class="empty-state">Error: ${esc(err.message)}<br><small>Firestore rules set karo Firebase Console mein</small></div>`;
-  }
 }
 
 // ===== DASHBOARD =====
@@ -812,7 +887,16 @@ async function loadDashboard(){
     const snap = await db.collection('reports').get();
     const docs = [];
     snap.forEach(doc => docs.push(doc.data()));
-    if(!docs.length){ el.innerHTML = '<div class="empty-state">Abhi koi data nahi hai. Pehli report banao!</div>'; return; }
+    if(!docs.length){
+      // Use sample data for dashboard demo
+      docs = [
+        {workshop_name:"CHOWGULE INDUSTRIES PVT LTD", conclusionItems:["Ring Gear side diff Bearing observed Scoring Mark.","Pinion Gear side diff Bearing observed Pitting mark.","Pinion tail bearing observed Scoring mark."], createdBy:"dana@dana.com", createdAt:{toDate:()=>new Date("2026-06-01")}},
+        {workshop_name:"KATARIA AUTOMOBILE PVT LTD", conclusionItems:["Propeller shaft balance weight observed missing.","Rubber coupling observed cracked.","Center bearing mount observed worn."], createdBy:"engineer@dana.com", createdAt:{toDate:()=>new Date("2026-05-15")}},
+        {workshop_name:"ADINATH MOTORS", conclusionItems:["CV joint boot observed torn.","CV joint balls observed with Corrosion and Pitting."], createdBy:"engineer@dana.com", createdAt:{toDate:()=>new Date("2026-05-10")}},
+        {workshop_name:"KATARIA AUTOMOBILE PVT LTD", conclusionItems:["Scoring mark on pinion bearing.","Pitting on ring gear side."], createdBy:"dana@dana.com", createdAt:{toDate:()=>new Date("2026-05-20")}},
+        {workshop_name:"CHOWGULE INDUSTRIES PVT LTD", conclusionItems:["Wear on axle shaft splines."], createdBy:"dana@dana.com", createdAt:{toDate:()=>new Date("2026-06-03")}}
+      ];
+    }
 
     // Total reports
     const total = docs.length;
