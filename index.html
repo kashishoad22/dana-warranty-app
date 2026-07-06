@@ -292,57 +292,110 @@
   }
 
   /* ===== DASHBOARD ===== */
-  .dash-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:16px; }
+  .dash-header{ padding:16px; border-bottom:1px solid var(--line); }
+  .dash-header h3{ font-size:14px; font-weight:700; color:var(--ink); }
+  .dash-header p{ font-size:11.5px; color:var(--silver); margin-top:2px; }
+  .dash-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px; }
   .dash-card{
-    background:var(--card); border:1.5px solid var(--line);
-    border-radius:10px; padding:16px;
-    box-shadow:0 2px 8px rgba(0,57,120,0.04);
+    border-radius:10px; padding:16px; position:relative; overflow:hidden;
   }
+  .dash-card.blue{ background:linear-gradient(135deg,#0057A8,#003A75); }
+  .dash-card.green{ background:linear-gradient(135deg,#1B7A4D,#145C39); }
+  .dash-card.orange{ background:linear-gradient(135deg,#B87900,#8A5C00); }
+  .dash-card.red{ background:linear-gradient(135deg,#C0392B,#922B21); }
   .dash-card .dc-val{
     font-family:'Rajdhani',sans-serif;
-    font-size:34px; font-weight:700; color:var(--brand); line-height:1;
+    font-size:38px; font-weight:700; color:#fff; line-height:1;
   }
   .dash-card .dc-label{
-    font-size:10.5px; color:var(--silver); margin-top:4px;
+    font-size:10.5px; color:rgba(255,255,255,0.75); margin-top:4px;
     font-weight:600; text-transform:uppercase; letter-spacing:.5px;
   }
-  .dash-section{ padding:0 16px 16px; }
-  .dash-section h4{
-    font-size:12px; font-weight:700; color:var(--steel);
-    text-transform:uppercase; letter-spacing:.5px;
-    margin-bottom:12px; padding-top:6px;
+  .dash-card .dc-icon{
+    position:absolute; right:12px; top:12px;
+    font-size:28px; opacity:0.25;
   }
-  .bar-row{ display:flex; align-items:center; gap:8px; margin-bottom:9px; }
+  .dash-section{ padding:0 14px 14px; }
+  .dash-section-title{
+    font-size:11px; font-weight:700; color:var(--steel);
+    text-transform:uppercase; letter-spacing:.8px;
+    margin-bottom:10px; padding-top:14px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .dash-section-title::after{
+    content:''; flex:1; height:1px; background:var(--line);
+  }
+  .bar-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
   .bar-label{
-    font-size:11.5px; color:var(--ink); width:120px;
+    font-size:11.5px; color:var(--ink); width:130px;
     flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     font-weight:500;
   }
-  .bar-track{ flex:1; background:var(--line); border-radius:4px; height:8px; overflow:hidden; }
-  .bar-fill{ height:100%; background: linear-gradient(90deg, var(--brand), #2E86E8); border-radius:4px; transition:width 0.5s ease; }
-  .bar-count{ font-size:11px; color:var(--silver); width:22px; text-align:right; flex-shrink:0; font-weight:600; }
+  .bar-track{
+    flex:1; background:var(--line); border-radius:6px; height:10px; overflow:hidden;
+    position:relative;
+  }
+  .bar-fill{
+    height:100%; border-radius:6px; transition:width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .bar-fill.blue{ background:linear-gradient(90deg,#0057A8,#2E86E8); }
+  .bar-fill.red{ background:linear-gradient(90deg,#C0392B,#E74C3C); }
+  .bar-fill.green{ background:linear-gradient(90deg,#1B7A4D,#27AE60); }
+  .bar-fill.orange{ background:linear-gradient(90deg,#B87900,#F39C12); }
+  .bar-count{
+    font-size:11.5px; color:var(--ink); width:24px;
+    text-align:right; flex-shrink:0; font-weight:700;
+  }
+  .defect-badge{
+    display:inline-flex; align-items:center; gap:5px;
+    padding:5px 10px; border-radius:20px; font-size:11px; font-weight:700;
+    margin:3px;
+  }
+  .defect-badge.pitting{ background:#FDE8E8; color:#C0392B; }
+  .defect-badge.scoring{ background:#FEF3CD; color:#B87900; }
+  .defect-badge.wear{ background:#E8F5E9; color:#1B7A4D; }
+  .defect-badge.corrosion{ background:#E8F0FE; color:#0057A8; }
 
   /* ===== HISTORY ===== */
   .history-list{ display:flex; flex-direction:column; gap:10px; padding:16px; }
   .history-item{
     background:var(--card); border:1.5px solid var(--line);
-    border-radius:10px; padding:13px 15px; cursor:pointer;
-    transition:all 0.15s;
-    box-shadow:0 1px 4px rgba(0,57,120,0.04);
+    border-radius:10px; overflow:hidden; cursor:pointer;
+    transition:all 0.15s; box-shadow:0 2px 8px rgba(0,57,120,0.05);
   }
-  .history-item:hover{ border-color:var(--brand); background:var(--brand-light); }
+  .history-item:hover{ border-color:var(--brand); box-shadow:0 4px 16px rgba(0,87,168,0.12); transform:translateY(-1px); }
+  .history-item .hi-stripe{
+    height:4px;
+    background:linear-gradient(90deg, var(--brand), #2E86E8);
+  }
+  .history-item .hi-body{ padding:13px 15px; }
   .history-item .hi-top{
-    display:flex; justify-content:space-between;
-    font-size:13px; font-weight:700; color:var(--ink);
+    display:flex; justify-content:space-between; align-items:flex-start;
+    font-size:13.5px; font-weight:700; color:var(--ink);
   }
-  .history-item .hi-sub{ font-size:11.5px; color:var(--steel); margin-top:4px; }
-  .history-item .hi-meta{ font-size:10.5px; color:var(--silver); margin-top:6px; }
+  .history-item .hi-claim{
+    font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:700;
+    color:var(--brand); background:var(--brand-light);
+    padding:2px 8px; border-radius:4px; flex-shrink:0;
+  }
+  .history-item .hi-sub{ font-size:12px; color:var(--steel); margin-top:5px; display:flex; gap:12px; flex-wrap:wrap; }
+  .history-item .hi-sub span{ display:flex; align-items:center; gap:4px; }
+  .history-item .hi-footer{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:8px; padding-top:8px; border-top:1px solid var(--line);
+  }
+  .history-item .hi-meta{ font-size:10.5px; color:var(--silver); }
+  .history-item .hi-expand{ font-size:10.5px; color:var(--brand); font-weight:600; }
   .history-detail{
-    background:var(--surface); border:1.5px solid var(--line);
-    border-radius:8px; padding:14px; margin-top:8px;
+    background:var(--surface); border-top:1.5px solid var(--line);
+    padding:14px;
   }
-  .history-detail h5{ font-size:12.5px; color:var(--brand-deep); margin-bottom:8px; font-weight:700; }
-  .empty-state{ text-align:center; color:var(--silver); font-size:13.5px; padding:48px 16px; line-height:1.6; }
+  .history-detail h5{ font-size:12px; font-weight:700; color:var(--brand-deep); margin-bottom:8px; text-transform:uppercase; letter-spacing:.3px; }
+  .empty-state{
+    text-align:center; color:var(--silver); font-size:13.5px;
+    padding:56px 16px; line-height:1.8;
+  }
+  .empty-state .es-icon{ font-size:40px; display:block; margin-bottom:12px; }
 
   /* ===== REPORT ===== */
   .report{
@@ -771,72 +824,16 @@ async function loadHistory(){
   // Use sample data if Firestore empty/unavailable
   if(docs.length === 0){
     docs = [
-      {
-        vin_no:"MA3JDT08WSCE52494", claim_no:"W2600003", model:"Eeco YG8 (AQI412C)",
-        causal_part_name:"DIFFERENTIAL ASSY, REAR", causal_part_no:"27300M78T00",
-        registration_date:"18-MAR-2025", repair_date:"05-MAY-2026", mileage:"18667 km",
-        diff_assy_mfg_date:"19-FEB-2025",
-        customer_issue_description:"General abnormal noise mechanical type noise improper assembly-others",
-        dealer_observation:"RR side noise hence bearing replace under warranty.",
-        workshop_name:"CHOWGULE INDUSTRIES PVT LTD", workshop_location:"ADINATH SOCIETY-SRV, PUNE",
-        warranty_meeting_date:"01-06-2026", reportNo:"DAIPL-FA-E52494",
-        conclusionItems:[
-          "Pinion nut caulking observed OK.",
-          "Backlash observed 0.046mm, 0.061mm, 0.039mm and TTTR-0 kgf/cm.",
-          "Ring side Lock Plate observed ok and Pinion side Lock Plate observed OK.",
-          "Contact pattern observed flank out.",
-          "Both side Bearing cap observed ok.",
-          "Ring Gear side diff Bearing observed Scoring Mark.",
-          "Ring Gear side diff Bearing cup observed Scoring Mark.",
-          "Pinion Gear side diff Bearing observed Pitting mark.",
-          "Pinion Gear side diff Bearing cup observed Pitting Mark.",
-          "Pinion tail bearing observed Scoring mark.",
-          "Pinion tail bearing cup observed Scoring Mark.",
-          "Pinion head bearing observed Scoring mark.",
-          "Pinion head bearing cup observed Scoring mark."
-        ],
-        finalNote:"Only need to change the Diff bearing — not need to Scrap the Full Diff Assy.",
-        causeMap:{"Pitting Mark":"Lubrication issue","Scoring Mark":"Metal-to-metal contact"},
-        createdBy:"dana@dana.com", _dateStr:"01/06/2026, 10:30:00 am"
-      },
-      {
-        vin_no:"MA3ERLF1S00271842", claim_no:"W2500187", model:"Swift Dzire VXI",
-        causal_part_name:"PROPELLER SHAFT ASSY", causal_part_no:"37100M74T10",
-        registration_date:"12-JAN-2025", repair_date:"20-APR-2026", mileage:"24500 km",
-        diff_assy_mfg_date:"05-NOV-2024",
-        customer_issue_description:"Vibration in vehicle during acceleration at highway speed",
-        dealer_observation:"Propeller shaft vibration observed, imbalance suspected.",
-        workshop_name:"KATARIA AUTOMOBILE PVT LTD", workshop_location:"SECTOR 14, GURGAON",
-        warranty_meeting_date:"15-05-2026", reportNo:"DAIPL-FA-2500187",
-        conclusionItems:[
-          "Propeller shaft balance weight observed missing on rear section.",
-          "Rubber coupling observed cracked at flange joint.",
-          "Center bearing mount observed worn.",
-          "No external damage or off-road usage marks observed."
-        ],
-        finalNote:"Propeller shaft to be replaced under warranty. Root cause: manufacturing balance weight adhesion failure.",
-        causeMap:{"Wear":"Accelerated wear due to imbalance"},
-        createdBy:"engineer@dana.com", _dateStr:"15/05/2026, 2:00:00 pm"
-      },
-      {
-        vin_no:"MA3FJEB1S00445521", claim_no:"W2500299", model:"Baleno Alpha",
-        causal_part_name:"REAR AXLE SHAFT LH", causal_part_no:"42311M79T00",
-        registration_date:"03-MAR-2024", repair_date:"10-MAY-2026", mileage:"41200 km",
-        diff_assy_mfg_date:"15-JAN-2024",
-        customer_issue_description:"Noise from rear left side during sharp turns",
-        dealer_observation:"CV joint noise observed on LH rear axle shaft.",
-        workshop_name:"ADINATH MOTORS", workshop_location:"DHARUHERA, HARYANA",
-        warranty_meeting_date:"01-06-2026", reportNo:"DAIPL-FA-2500299",
-        conclusionItems:[
-          "CV joint boot observed torn — grease leakage found.",
-          "CV joint balls observed with Corrosion and Pitting.",
-          "Axle spline engagement found OK.",
-          "No overload or off-road usage evidence found."
-        ],
-        finalNote:"LH rear axle shaft to be replaced under warranty. Torn boot led to grease loss and bearing corrosion.",
-        causeMap:{"Corrosion":"Moisture ingress through torn CV boot","Pitting Mark":"Grease starvation due to boot failure"},
-        createdBy:"engineer@dana.com", _dateStr:"10/05/2026, 9:15:00 am"
-      }
+      {vin_no:"MA3JDT08WSCE52494",claim_no:"W2600003",model:"Eeco YG8 (AQI412C)",causal_part_name:"DIFFERENTIAL ASSY, REAR",causal_part_no:"27300M78T00",registration_date:"18-MAR-2025",repair_date:"05-MAY-2026",mileage:"18667 km",diff_assy_mfg_date:"19-FEB-2025",customer_issue_description:"General abnormal noise mechanical type noise improper assembly-others",dealer_observation:"RR side noise hence bearing replace under warranty.",workshop_name:"CHOWGULE INDUSTRIES PVT LTD",workshop_location:"ADINATH SOCIETY-SRV, PUNE",warranty_meeting_date:"01-06-2026",reportNo:"DAIPL-FA-E52494",conclusionItems:["Pinion nut caulking observed OK.","Backlash observed 0.046mm, 0.061mm, 0.039mm and TTTR-0 kgf/cm.","Ring side Lock Plate observed ok and Pinion side Lock Plate observed OK.","Contact pattern observed flank out.","Both side Bearing cap observed ok.","Ring Gear side diff Bearing observed Scoring Mark.","Ring Gear side diff Bearing cup observed Scoring Mark.","Pinion Gear side diff Bearing observed Pitting mark.","Pinion Gear side diff Bearing cup observed Pitting Mark.","Pinion tail bearing observed Scoring mark.","Pinion tail bearing cup observed Scoring Mark.","Pinion head bearing observed Scoring mark.","Pinion head bearing cup observed Scoring mark."],finalNote:"Only need to change the Diff bearing — not need to Scrap the Full Diff Assy.",causeMap:{"Pitting Mark":"Lubrication issue (insufficient/contaminated lubricant, oil starvation).","Scoring Mark":"Metal-to-metal contact due to inadequate lubrication."},createdBy:"dana@dana.com",_dateStr:"01/06/2026, 10:30 AM"},
+      {vin_no:"MA3ERLF1S00271842",claim_no:"W2500187",model:"Swift Dzire VXI",causal_part_name:"PROPELLER SHAFT ASSY",causal_part_no:"37100M74T10",registration_date:"12-JAN-2025",repair_date:"20-APR-2026",mileage:"24500 km",diff_assy_mfg_date:"05-NOV-2024",customer_issue_description:"Vibration in vehicle during acceleration at highway speed",dealer_observation:"Propeller shaft vibration observed, imbalance suspected.",workshop_name:"KATARIA AUTOMOBILE PVT LTD",workshop_location:"SECTOR 14, GURGAON",warranty_meeting_date:"15-05-2026",reportNo:"DAIPL-FA-2500187",conclusionItems:["Propeller shaft balance weight observed missing on rear section.","Rubber coupling observed cracked at flange joint.","Center bearing mount observed worn.","No external damage or off-road usage marks observed."],finalNote:"Propeller shaft to be replaced under warranty. Root cause: manufacturing balance weight adhesion failure.",causeMap:{"Wear":"Accelerated wear due to imbalance and missing balance weight."},createdBy:"engineer@dana.com",_dateStr:"15/05/2026, 2:00 PM"},
+      {vin_no:"MA3FJEB1S00445521",claim_no:"W2500299",model:"Baleno Alpha",causal_part_name:"REAR AXLE SHAFT LH",causal_part_no:"42311M79T00",registration_date:"03-MAR-2024",repair_date:"10-MAY-2026",mileage:"41200 km",diff_assy_mfg_date:"15-JAN-2024",customer_issue_description:"Noise from rear left side during sharp turns",dealer_observation:"CV joint noise observed on LH rear axle shaft.",workshop_name:"ADINATH MOTORS",workshop_location:"DHARUHERA, HARYANA",warranty_meeting_date:"01-06-2026",reportNo:"DAIPL-FA-2500299",conclusionItems:["CV joint boot observed torn — grease leakage found.","CV joint balls observed with Corrosion and Pitting.","Axle spline engagement found OK.","No overload or off-road usage evidence found."],finalNote:"LH rear axle shaft to be replaced under warranty. Torn boot led to grease loss and bearing corrosion.",causeMap:{"Corrosion":"Moisture ingress through torn CV boot.","Pitting Mark":"Grease starvation due to boot failure."},createdBy:"engineer@dana.com",_dateStr:"10/05/2026, 9:15 AM"},
+      {vin_no:"MA3CNBE1S00312874",claim_no:"W2400521",model:"WagonR LXI CNG",causal_part_name:"FRONT AXLE SHAFT RH",causal_part_no:"44101M72T00",registration_date:"22-JUN-2024",repair_date:"18-APR-2026",mileage:"33800 km",diff_assy_mfg_date:"10-APR-2024",customer_issue_description:"Clunking noise from front right side on uneven roads",dealer_observation:"Front RH axle shaft CV joint failure suspected.",workshop_name:"KATARIA AUTOMOBILE PVT LTD",workshop_location:"SECTOR 14, GURGAON",warranty_meeting_date:"30-04-2026",reportNo:"DAIPL-FA-2400521",conclusionItems:["CV joint outer boot observed cracked — grease leakage present.","Spline wear observed on axle shaft — within limits.","Bearing play observed within acceptable range.","No off-road usage or overload marks found."],finalNote:"Front RH axle shaft to be replaced under warranty — CV boot failure causing premature wear.",causeMap:{"Wear":"Boot cracking led to grease loss and accelerated CV joint wear."},createdBy:"dana@dana.com",_dateStr:"18/04/2026, 11:00 AM"},
+      {vin_no:"MA3FKEB1S00198321",claim_no:"W2400388",model:"Ertiga ZXI Plus",causal_part_name:"REAR DIFFERENTIAL ASSY",causal_part_no:"27300M85T00",registration_date:"14-AUG-2024",repair_date:"25-MAR-2026",mileage:"29100 km",diff_assy_mfg_date:"02-JUL-2024",customer_issue_description:"Howling noise from rear axle at speeds above 60 kmph",dealer_observation:"Differential howling noise confirmed during test drive.",workshop_name:"CHOWGULE INDUSTRIES PVT LTD",workshop_location:"ADINATH SOCIETY-SRV, PUNE",warranty_meeting_date:"10-04-2026",reportNo:"DAIPL-FA-2400388",conclusionItems:["Ring and Pinion gear contact pattern observed toe-heavy on drive side.","Backlash measured at 0.038mm — below minimum specification.","TTTR observed at 17.2 kgf/cm — within range.","Gear surface finish observed OK — no scoring or pitting."],finalNote:"Diff assembly to be replaced — gear contact pattern NG due to incorrect shimming during manufacturing.",causeMap:{"Contact Pattern Issue":"Incorrect shim selection during assembly led to toe-heavy contact."},createdBy:"engineer@dana.com",_dateStr:"25/03/2026, 3:45 PM"},
+      {vin_no:"MA3GNBE1S00541029",claim_no:"W2600112",model:"S-Presso VXI AMT",causal_part_name:"PROPELLER SHAFT ASSY",causal_part_no:"37100M72T00",registration_date:"05-NOV-2024",repair_date:"12-JUN-2026",mileage:"11200 km",diff_assy_mfg_date:"20-SEP-2024",customer_issue_description:"Vibration felt through gear lever during driving",dealer_observation:"Propeller shaft center bearing noise observed.",workshop_name:"SAI AUTOMOBILES",workshop_location:"MANESAR, HARYANA",warranty_meeting_date:"25-06-2026",reportNo:"DAIPL-FA-2600112",conclusionItems:["Center bearing rubber mount observed deteriorated.","Propeller shaft universal joint observed with excessive play.","Balance weights intact — no imbalance detected.","Vehicle mileage within warranty limit — no misuse evidence."],finalNote:"Propeller shaft center bearing to be replaced under warranty — premature rubber deterioration.",causeMap:{"Wear":"Premature rubber compound deterioration in center bearing mount."},createdBy:"dana@dana.com",_dateStr:"12/06/2026, 10:00 AM"},
+      {vin_no:"MA3ERLF1S00301441",claim_no:"W2500433",model:"Ciaz Alpha",causal_part_name:"FRONT DIFFERENTIAL ASSY",causal_part_no:"27301M79T00",registration_date:"19-FEB-2025",repair_date:"02-MAY-2026",mileage:"16800 km",diff_assy_mfg_date:"05-JAN-2025",customer_issue_description:"Grinding noise from front axle during cold start",dealer_observation:"Front diff grinding noise, bearing failure suspected.",workshop_name:"ADINATH MOTORS",workshop_location:"DHARUHERA, HARYANA",warranty_meeting_date:"20-05-2026",reportNo:"DAIPL-FA-2500433",conclusionItems:["Diff bearing inner race observed with Pitting mark on rolling surface.","Bearing cage observed cracked on RH side.","Oil level found adequate — no leakage from seals.","Gear contact pattern observed OK."],finalNote:"Only front diff bearing to be replaced — gear assembly found OK, no need to scrap full diff.",causeMap:{"Pitting Mark":"Early-stage fatigue pitting — possibly due to bearing material defect."},createdBy:"engineer@dana.com",_dateStr:"02/05/2026, 4:30 PM"},
+      {vin_no:"MA3CNBE1S00422015",claim_no:"W2600044",model:"Alto K10 VXI",causal_part_name:"REAR AXLE SHAFT RH",causal_part_no:"42312M71T00",registration_date:"11-DEC-2024",repair_date:"28-MAY-2026",mileage:"8900 km",diff_assy_mfg_date:"15-OCT-2024",customer_issue_description:"Knocking noise from rear right side on bumps",dealer_observation:"Rear RH axle shaft noise — possible bearing failure.",workshop_name:"KATARIA AUTOMOBILE PVT LTD",workshop_location:"SECTOR 14, GURGAON",warranty_meeting_date:"10-06-2026",reportNo:"DAIPL-FA-2600044",conclusionItems:["Axle shaft bearing observed with Scoring marks on outer race.","No grease leakage from hub seal observed.","Wheel hub flange found OK — no cracks.","Off-road usage marks NOT observed on vehicle underside."],finalNote:"Rear RH axle shaft bearing to be replaced under warranty — scoring due to manufacturing surface finish defect.",causeMap:{"Scoring Mark":"Manufacturing surface finish defect on bearing outer race."},createdBy:"dana@dana.com",_dateStr:"28/05/2026, 12:00 PM"},
+      {vin_no:"MA3FKEB1S00289301",claim_no:"W2500312",model:"Grand Vitara Sigma",causal_part_name:"TRANSFER CASE ASSY",causal_part_no:"36200M86T00",registration_date:"30-APR-2024",repair_date:"15-APR-2026",mileage:"38500 km",diff_assy_mfg_date:"18-MAR-2024",customer_issue_description:"4WD engagement failure — grinding during 4WD switch",dealer_observation:"Transfer case engagement gear wear suspected.",workshop_name:"SAI AUTOMOBILES",workshop_location:"MANESAR, HARYANA",warranty_meeting_date:"30-04-2026",reportNo:"DAIPL-FA-2500312",conclusionItems:["Transfer case shift fork observed bent — engagement incomplete.","Engagement dog gear teeth observed with Wear on engagement face.","Transfer case oil found contaminated with metallic particles.","Off-road usage marks found on vehicle — customer misuse confirmed."],finalNote:"Warranty claim REJECTED — off-road misuse confirmed as root cause of transfer case failure.",causeMap:{"Wear":"Aggressive 4WD engagement under load on off-road terrain caused dog gear wear."},createdBy:"engineer@dana.com",_dateStr:"15/04/2026, 1:30 PM"},
+      {vin_no:"MA3GNBE1S00478812",claim_no:"W2600201",model:"Fronx Zeta Turbo",causal_part_name:"FRONT PROPELLER SHAFT",causal_part_no:"37200M88T10",registration_date:"15-JAN-2025",repair_date:"25-JUN-2026",mileage:"7400 km",diff_assy_mfg_date:"28-NOV-2024",customer_issue_description:"Shudder during acceleration from standstill",dealer_observation:"Front propeller shaft vibration at low speed.",workshop_name:"CHOWGULE INDUSTRIES PVT LTD",workshop_location:"ADINATH SOCIETY-SRV, PUNE",warranty_meeting_date:"10-07-2026",reportNo:"DAIPL-FA-2600201",conclusionItems:["Propeller shaft universal joint play observed excessive.","Yoke alignment found offset — within 2 degree tolerance breach.","Balance weights intact — no added imbalance.","Very low mileage — premature failure confirmed."],finalNote:"Front propeller shaft to be replaced under warranty — UJ premature failure at low mileage.",causeMap:{"Wear":"Premature universal joint failure — possible assembly torque deficiency."},createdBy:"dana@dana.com",_dateStr:"25/06/2026, 9:45 AM"}
     ];
   }
 
@@ -847,9 +844,22 @@ async function loadHistory(){
       const item = document.createElement('div');
       item.className = 'history-item';
       item.innerHTML = `
-        <div class="hi-top"><span>${esc(d.causal_part_name||'Part')}</span><span style="color:var(--dana-blue)">${esc(d.claim_no||'—')}</span></div>
-        <div class="hi-sub">VIN: ${esc(d.vin_no||'—')} &nbsp;·&nbsp; ${esc(d.model||'—')}</div>
-        <div class="hi-meta">👤 ${esc(d.createdBy||'')} &nbsp;·&nbsp; 🕐 ${dt}</div>
+        <div class="hi-stripe"></div>
+        <div class="hi-body">
+          <div class="hi-top">
+            <span>${esc(d.causal_part_name||'Part')}</span>
+            <span class="hi-claim">${esc(d.claim_no||'—')}</span>
+          </div>
+          <div class="hi-sub">
+            <span>🚗 ${esc(d.model||'—')}</span>
+            <span>📍 ${esc(d.vin_no||'—')}</span>
+            <span>📏 ${esc(d.mileage||'—')}</span>
+          </div>
+          <div class="hi-footer">
+            <div class="hi-meta">👤 ${esc((d.createdBy||'').split('@')[0])} &nbsp;·&nbsp; 🕐 ${dt}</div>
+            <div class="hi-expand">Details dekho ▾</div>
+          </div>
+        </div>
       `;
       item.addEventListener('click', ()=>{
         const ex = item.nextElementSibling;
@@ -941,31 +951,68 @@ async function loadDashboard(){
         <div class="bar-count">${count}</div>
       </div>`).join('');
 
+    const defectColors = {'Pitting':'red','Scoring':'orange','Wear':'green','Corrosion':'blue','Flank':'orange'};
+    
     el.innerHTML = `
+      <div class="dash-header">
+        <h3>Warranty Analytics Dashboard</h3>
+        <p>DAIPL Dharuhera Plant — Real-time overview</p>
+      </div>
+
       <div class="dash-grid">
-        <div class="dash-card">
+        <div class="dash-card blue">
+          <div class="dc-icon">📋</div>
           <div class="dc-val">${total}</div>
           <div class="dc-label">Total Reports</div>
         </div>
-        <div class="dash-card">
-          <div class="dc-val" style="color:var(--green)">${thisMonth}</div>
+        <div class="dash-card green">
+          <div class="dc-icon">📅</div>
+          <div class="dc-val">${thisMonth}</div>
           <div class="dc-label">Is Mahine</div>
+        </div>
+        <div class="dash-card orange">
+          <div class="dc-icon">🏪</div>
+          <div class="dc-val">${Object.keys(dealerCount).length}</div>
+          <div class="dc-label">Active Dealers</div>
+        </div>
+        <div class="dash-card red">
+          <div class="dc-icon">⚠️</div>
+          <div class="dc-val">${Object.keys(defectCount).length}</div>
+          <div class="dc-label">Defect Types Found</div>
         </div>
       </div>
 
       <div class="dash-section">
-        <h4>🏪 Top Dealers (Claim Count)</h4>
-        ${topDealers.length ? barRows(topDealers, maxDealer) : '<div class="empty-state" style="padding:12px">Data nahi hai abhi</div>'}
+        <div class="dash-section-title">Top Dealers by Claim Count</div>
+        ${topDealers.map(([label, count]) => `
+          <div class="bar-row">
+            <div class="bar-label" title="${esc(label)}">${esc(label.length>18?label.slice(0,18)+'…':label)}</div>
+            <div class="bar-track"><div class="bar-fill blue" style="width:${Math.round(count/maxDealer*100)}%"></div></div>
+            <div class="bar-count">${count}</div>
+          </div>`).join('')}
       </div>
 
       <div class="dash-section">
-        <h4>🔧 Sabse Common Defects</h4>
-        ${topDefects.length ? barRows(topDefects, maxDefect) : '<div class="empty-state" style="padding:12px">Defect data nahi hai abhi</div>'}
+        <div class="dash-section-title">Common Defects Observed</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">
+          ${topDefects.map(([d,c]) => `<span class="defect-badge ${(defectColors[d]||'blue').toLowerCase()}">${esc(d)} <b>${c}</b></span>`).join('')}
+        </div>
+        ${topDefects.map(([label, count]) => `
+          <div class="bar-row">
+            <div class="bar-label">${esc(label)}</div>
+            <div class="bar-track"><div class="bar-fill ${defectColors[label]||'blue'}" style="width:${Math.round(count/maxDefect*100)}%"></div></div>
+            <div class="bar-count">${count}</div>
+          </div>`).join('')}
       </div>
 
       <div class="dash-section">
-        <h4>👷 Engineer Activity</h4>
-        ${barRows(topEng, topEng[0] ? topEng[0][1] : 1)}
+        <div class="dash-section-title">Engineer Activity</div>
+        ${topEng.map(([label, count]) => `
+          <div class="bar-row">
+            <div class="bar-label">${esc(label.split('@')[0])}</div>
+            <div class="bar-track"><div class="bar-fill green" style="width:${Math.round(count/(topEng[0]?topEng[0][1]:1)*100)}%"></div></div>
+            <div class="bar-count">${count}</div>
+          </div>`).join('')}
       </div>
     `;
   }catch(err){
