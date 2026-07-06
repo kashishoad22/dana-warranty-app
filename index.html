@@ -586,6 +586,7 @@ auth.onAuthStateChanged(user=>{
     appContent.style.display='block';
     const role=ROLE_MAP[user.email]||'Engineer';
     document.getElementById('uname').textContent = user.email.split('@')[0];
+    seedSampleDataIfEmpty();
     document.getElementById('urole').textContent = role;
     const banner=document.getElementById('roleBanner');
     const mainArea=document.querySelector('.body-pad');
@@ -618,6 +619,126 @@ const generateBtn = document.getElementById('generateBtn');
 const reportSection = document.getElementById('reportSection');
 const errorSection = document.getElementById('errorSection');
 const errorBox = document.getElementById('errorBox');
+
+
+// ===== SEED SAMPLE DATA (runs once) =====
+async function seedSampleDataIfEmpty(){
+  try{
+    const snap = await db.collection('reports').limit(1).get();
+    if(!snap.empty) return; // already has data
+
+    const samples = [
+      {
+        vin_no: "MA3JDT08WSCE52494",
+        claim_no: "W2600003",
+        model: "Eeco YG8 (AQI412C)",
+        causal_part_name: "DIFFERENTIAL ASSY, REAR",
+        causal_part_no: "27300M78T00",
+        registration_date: "18-MAR-2025",
+        repair_date: "05-MAY-2026",
+        mileage: "18667 km",
+        diff_assy_mfg_date: "19-FEB-2025",
+        customer_issue_description: "General abnormal noise mechanical type noise improper assembly-others",
+        dealer_observation: "RR side noise hence bearing replace under warranty.",
+        workshop_name: "CHOWGULE INDUSTRIES PVT LTD",
+        workshop_location: "ADINATH SOCIETY-SRV, PUNE",
+        warranty_meeting_date: "01-06-2026",
+        reportNo: "DAIPL-FA-E52494",
+        conclusionItems: [
+          "Pinion nut caulking observed OK.",
+          "Backlash observed 0.046mm, 0.061mm, 0.039mm and TTTR-0 kgf/cm.",
+          "Ring side Lock Plate observed ok and Pinion side Lock Plate observed OK.",
+          "Contact pattern observed flank out.",
+          "Both side Bearing cap observed ok.",
+          "Ring Gear side diff Bearing observed Scoring Mark.",
+          "Ring Gear side diff Bearing cup observed Scoring Mark.",
+          "Pinion Gear side diff Bearing observed Pitting mark.",
+          "Pinion Gear side diff Bearing cup observed Pitting Mark.",
+          "Pinion tail bearing observed Scoring mark.",
+          "Pinion tail bearing cup observed Scoring Mark.",
+          "Pinion head bearing observed Scoring mark.",
+          "Pinion head bearing cup observed Scoring mark."
+        ],
+        finalNote: "Only need to change the Diff bearing — not need to Scrap the Full Diff Assy.",
+        causeMap: {
+          "Pitting Mark": "Lubrication issue (insufficient/incorrect/contaminated lubricant, oil starvation) ya excess load/preload se ho sakta hai.",
+          "Scoring Mark": "Inadequate lubrication, overheating, ya metal contamination ke wajah se metal-to-metal contact hota hai."
+        },
+        createdBy: "dana@dana.com",
+        createdAt: firebase.firestore.Timestamp.fromDate(new Date("2026-06-01T10:30:00"))
+      },
+      {
+        vin_no: "MA3ERLF1S00271842",
+        claim_no: "W2500187",
+        model: "Swift Dzire VXI",
+        causal_part_name: "PROPELLER SHAFT ASSY",
+        causal_part_no: "37100M74T10",
+        registration_date: "12-JAN-2025",
+        repair_date: "20-APR-2026",
+        mileage: "24500 km",
+        diff_assy_mfg_date: "05-NOV-2024",
+        customer_issue_description: "Vibration in vehicle during acceleration at highway speed",
+        dealer_observation: "Propeller shaft vibration observed, imbalance suspected.",
+        workshop_name: "KATARIA AUTOMOBILE PVT LTD",
+        workshop_location: "SECTOR 14, GURGAON",
+        warranty_meeting_date: "15-05-2026",
+        reportNo: "DAIPL-FA-2500187",
+        conclusionItems: [
+          "Propeller shaft balance weight observed missing on rear section.",
+          "Rubber coupling observed cracked at flange joint.",
+          "Center bearing mount observed worn.",
+          "No external damage or off-road usage marks observed on vehicle."
+        ],
+        finalNote: "Propeller shaft to be replaced under warranty. Root cause: manufacturing balance weight adhesion failure.",
+        causeMap: {
+          "Wear": "Normal service life ke baad ya improper lubrication/alignment se accelerated wear ho sakta hai."
+        },
+        createdBy: "dana@dana.com",
+        createdAt: firebase.firestore.Timestamp.fromDate(new Date("2026-05-15T14:00:00"))
+      },
+      {
+        vin_no: "MA3FJEB1S00445521",
+        claim_no: "W2500299",
+        model: "Baleno Alpha",
+        causal_part_name: "REAR AXLE SHAFT, LH",
+        causal_part_no: "42311M79T00",
+        registration_date: "03-MAR-2024",
+        repair_date: "10-MAY-2026",
+        mileage: "41200 km",
+        diff_assy_mfg_date: "15-JAN-2024",
+        customer_issue_description: "Noise from rear left side during sharp turns",
+        dealer_observation: "CV joint noise observed on LH rear axle shaft.",
+        workshop_name: "ADINATH MOTORS",
+        workshop_location: "DHARUHERA, HARYANA",
+        warranty_meeting_date: "01-06-2026",
+        reportNo: "DAIPL-FA-2500299",
+        conclusionItems: [
+          "CV joint boot observed torn — grease leakage found.",
+          "CV joint balls observed with Corrosion and Pitting.",
+          "Axle spline engagement found OK.",
+          "No overload or off-road usage evidence found."
+        ],
+        finalNote: "LH rear axle shaft to be replaced under warranty. Torn boot led to grease loss and subsequent bearing corrosion.",
+        causeMap: {
+          "Corrosion": "Moisture ingress through torn CV boot caused corrosion on bearing balls.",
+          "Pitting Mark": "Grease starvation due to boot failure led to metal-to-metal contact and pitting."
+        },
+        createdBy: "engineer@dana.com",
+        createdAt: firebase.firestore.Timestamp.fromDate(new Date("2026-05-10T09:15:00"))
+      }
+    ];
+
+    const batch = db.batch();
+    samples.forEach(s => {
+      const ref = db.collection('reports').doc();
+      batch.set(ref, s);
+    });
+    await batch.commit();
+    console.log('Sample data seeded successfully');
+  }catch(e){
+    console.warn('Seed failed:', e.message);
+  }
+}
 
 let cardData = null;
 let cardImgB64 = null;
