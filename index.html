@@ -477,6 +477,175 @@
     color:#5C84B0; font-size:10.5px;
     display:flex; justify-content:space-between;
   }
+
+  /* ===== WELCOME BANNER ===== */
+  .welcome-banner{
+    background:linear-gradient(135deg, #001E40 0%, #003A75 50%, #0057A8 100%);
+    padding:20px; color:#fff; position:relative; overflow:hidden;
+  }
+  .welcome-banner::before{
+    content:''; position:absolute; right:-30px; top:-30px;
+    width:160px; height:160px; border-radius:50%;
+    background:rgba(255,255,255,0.04);
+  }
+  .welcome-banner::after{
+    content:''; position:absolute; right:30px; bottom:-40px;
+    width:100px; height:100px; border-radius:50%;
+    background:rgba(255,255,255,0.06);
+  }
+  .wb-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .wb-greeting{ font-size:12px; color:#8EADD4; font-weight:500; }
+  .wb-name{ font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; color:#fff; margin-top:2px; }
+  .wb-stats{ display:flex; gap:16px; margin-top:16px; }
+  .wb-stat{ text-align:center; }
+  .wb-stat .ws-val{ font-family:'Rajdhani',sans-serif; font-size:24px; font-weight:700; color:#fff; line-height:1; }
+  .wb-stat .ws-label{ font-size:10px; color:#8EADD4; font-weight:600; text-transform:uppercase; letter-spacing:.4px; margin-top:2px; }
+  .wb-stat-div{ width:1px; background:rgba(255,255,255,0.15); align-self:stretch; }
+  .wb-badge{
+    background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);
+    border-radius:20px; padding:4px 12px; font-size:11px; color:#fff; font-weight:600;
+  }
+
+  /* ===== SEARCH BAR ===== */
+  .search-bar{
+    padding:12px 16px; background:#fff; border-bottom:1px solid var(--line);
+    display:flex; gap:8px; align-items:center;
+  }
+  .search-input{
+    flex:1; padding:9px 13px; border:1.5px solid var(--line); border-radius:8px;
+    font-size:13px; font-family:'Inter',sans-serif; outline:none; color:var(--ink);
+  }
+  .search-input:focus{ border-color:var(--brand); }
+  .search-btn{
+    padding:9px 16px; background:var(--brand); color:#fff; border:none;
+    border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+
+  /* ===== STATUS BADGE ===== */
+  .status-badge{
+    font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:10px;
+    text-transform:uppercase; letter-spacing:.3px;
+  }
+  .status-badge.approved{ background:#EAF6F0; color:#1B7A4D; }
+  .status-badge.review{ background:#FEF3CD; color:#B87900; }
+  .status-badge.pending{ background:#E8F0FE; color:#0057A8; }
+
+  /* ===== STEP PROGRESS ===== */
+  .step-progress{
+    display:flex; align-items:center; padding:14px 16px;
+    background:var(--surface); border-bottom:1px solid var(--line);
+    gap:0;
+  }
+  .sp-item{ display:flex; align-items:center; flex:1; }
+  .sp-circle{
+    width:28px; height:28px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700;
+    border:2px solid var(--line); background:#fff; color:var(--silver);
+    transition:all 0.3s;
+  }
+  .sp-circle.done{ background:var(--success); border-color:var(--success); color:#fff; }
+  .sp-circle.active{ background:var(--brand); border-color:var(--brand); color:#fff; box-shadow:0 0 0 3px rgba(0,87,168,0.15); }
+  .sp-label{ font-size:10.5px; font-weight:600; color:var(--silver); margin-left:6px; }
+  .sp-label.active{ color:var(--brand); }
+  .sp-label.done{ color:var(--success); }
+  .sp-line{ flex:1; height:2px; background:var(--line); margin:0 8px; }
+  .sp-line.done{ background:var(--success); }
+
+  /* ===== TOAST NOTIFICATION ===== */
+  .toast-notif{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:#1B7A4D; color:#fff; padding:12px 20px; border-radius:10px;
+    font-size:13px; font-weight:600; z-index:9999;
+    box-shadow:0 8px 24px rgba(0,0,0,0.2);
+    animation:slideUp 0.3s ease, fadeOut 0.5s ease 2.5s forwards;
+    white-space:nowrap;
+  }
+  @keyframes slideUp{ from{transform:translateX(-50%) translateY(20px);opacity:0;} to{transform:translateX(-50%) translateY(0);opacity:1;} }
+  @keyframes fadeOut{ to{opacity:0;transform:translateX(-50%) translateY(20px);} }
+
+  /* ===== QUICK ACTION BUTTONS ===== */
+  .quick-actions{ display:flex; gap:10px; padding:14px 16px 0; }
+  .qa-btn{
+    flex:1; padding:11px 8px; border-radius:10px; border:1.5px solid var(--line);
+    background:#fff; text-align:center; cursor:pointer; transition:all 0.15s;
+    font-family:'Inter',sans-serif;
+  }
+  .qa-btn:hover{ border-color:var(--brand); background:var(--brand-light); }
+  .qa-btn .qa-icon{ font-size:20px; display:block; margin-bottom:4px; }
+  .qa-btn .qa-label{ font-size:10.5px; font-weight:600; color:var(--steel); }
+
+
+  /* Welcome banner */
+  .welcome-banner{
+    background: linear-gradient(135deg, #001E40 0%, #003A75 100%);
+    padding: 18px 20px; display:flex; align-items:center; gap:14px;
+    border-bottom: 3px solid var(--brand);
+  }
+  .wb-icon{ font-size:32px; }
+  .wb-text h4{ font-size:14px; font-weight:700; color:#fff; }
+  .wb-text p{ font-size:12px; color:#8EADD4; margin-top:2px; }
+  .wb-stats{ margin-left:auto; display:flex; gap:16px; }
+  .wb-stat{ text-align:center; }
+  .wb-stat .ws-val{ font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; color:#fff; }
+  .wb-stat .ws-lab{ font-size:9px; color:#8EADD4; text-transform:uppercase; letter-spacing:.5px; }
+
+  /* Step progress */
+  .step-progress{ display:flex; align-items:center; padding:14px 20px; background:#fff; border-bottom:1px solid var(--line); }
+  .sp-item{ display:flex; align-items:center; gap:6px; flex:1; }
+  .sp-item:last-child{ flex:0; }
+  .sp-circle{
+    width:28px; height:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; flex-shrink:0;
+  }
+  .sp-circle.done{ background:var(--success); color:#fff; }
+  .sp-circle.active{ background:var(--brand); color:#fff; box-shadow:0 0 0 3px rgba(0,87,168,0.2); }
+  .sp-circle.idle{ background:var(--line); color:var(--silver); }
+  .sp-label{ font-size:11px; font-weight:600; color:var(--steel); }
+  .sp-line{ flex:1; height:2px; background:var(--line); margin:0 6px; }
+  .sp-line.done{ background:var(--success); }
+
+  /* Toast */
+  .toast-msg{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:#1B7A4D; color:#fff; padding:12px 20px;
+    border-radius:8px; font-size:13px; font-weight:600;
+    box-shadow:0 8px 24px rgba(0,0,0,0.2); z-index:9999;
+    display:none; animation:slideUp 0.3s ease;
+  }
+  @keyframes slideUp{ from{opacity:0;transform:translateX(-50%) translateY(10px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
+
+  /* Footer */
+  .app-footer{
+    background:linear-gradient(135deg,#001E40,#003A75);
+    padding:16px 20px; text-align:center;
+    border-top:3px solid var(--brand);
+  }
+  .app-footer p{ font-size:10.5px; color:#5C84B0; line-height:1.7; }
+  .app-footer b{ color:#8EADD4; }
+
+  /* Report improvements */
+  .report-cover-logo{
+    display:flex; align-items:center; gap:10px; margin-bottom:20px;
+  }
+  .report-cover-logo svg{ width:36px; height:36px; }
+  .report-cover-logo span{
+    font-family:'Rajdhani',sans-serif; font-size:22px;
+    font-weight:700; color:#fff; letter-spacing:1px;
+  }
+  .report-status-bar{
+    display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;
+  }
+  .rs-badge{
+    padding:4px 10px; border-radius:4px; font-size:10px;
+    font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+  }
+  .rs-badge.daipl{ background:rgba(255,255,255,0.15); color:#fff; }
+  .rs-badge.ai{ background:#27AE60; color:#fff; }
+  .rs-badge.date{ background:rgba(255,255,255,0.1); color:#8EADD4; }
+
 </style>
 </head>
 <body>
@@ -530,6 +699,33 @@
     </div>
 
     <div id="panelNew">
+    <div class="welcome-banner" id="welcomeBanner">
+      <div class="wb-icon">🏭</div>
+      <div class="wb-text">
+        <h4>DAIPL Dharuhera Plant</h4>
+        <p>Warranty Failure Analysis System — Active</p>
+      </div>
+      <div class="wb-stats">
+        <div class="wb-stat"><div class="ws-val" id="wbTotal">3</div><div class="ws-lab">Total</div></div>
+        <div class="wb-stat"><div class="ws-val" id="wbMonth">2</div><div class="ws-lab">This Month</div></div>
+      </div>
+    </div>
+    <div class="step-progress" id="stepProgress">
+      <div class="sp-item">
+        <div class="sp-circle idle" id="sp1">1</div>
+        <div class="sp-label">Card Scan</div>
+      </div>
+      <div class="sp-line" id="spLine1"></div>
+      <div class="sp-item">
+        <div class="sp-circle idle" id="sp2">2</div>
+        <div class="sp-label">Part Photos</div>
+      </div>
+      <div class="sp-line" id="spLine2"></div>
+      <div class="sp-item">
+        <div class="sp-circle idle" id="sp3">✓</div>
+        <div class="sp-label">Report</div>
+      </div>
+    </div>
     <div class="body-pad">
 
       <!-- STEP 1: Maruti Card -->
@@ -576,7 +772,15 @@
 
       <div id="errorSection" style="display:none;"><div class="error-box" id="errorBox"></div></div>
 
-      <button class="btn btn-primary" id="generateBtn" disabled>Pehle Card Aur Kam Se Kam 1 Part Photo Daalo</button>
+      <div style="background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px">
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.4px">AI Report Generation</div>
+          <div style="font-size:11.5px;color:var(--silver);margin-top:3px" id="genStatus">Step 1 complete karo pehle</div>
+        </div>
+        <button class="btn btn-primary" id="generateBtn" disabled style="width:auto;padding:12px 20px;white-space:nowrap">
+          Generate →
+        </button>
+      </div>
 
       <div id="reportSection"></div>
 
@@ -596,7 +800,13 @@
     </div>
 
   </div>
+  <div class="app-footer">
+    <p><b>DANA Anand India Pvt. Ltd.</b> — Dharuhera Plant<br>
+    AI-Powered Warranty Analysis System &nbsp;·&nbsp; Confidential<br>
+    Value Others | Inspire Innovation | Grow Responsibly | Win Together</p>
+  </div>
 </div>
+<div class="toast-msg" id="toastMsg">✅ Report history mein save ho gayi!</div>
 
 <script>
 // ===== FIREBASE LOGIN =====
@@ -640,6 +850,17 @@ auth.onAuthStateChanged(user=>{
     const role=ROLE_MAP[user.email]||'Engineer';
     document.getElementById('uname').textContent = user.email.split('@')[0];
     seedSampleDataIfEmpty();
+    document.getElementById('quickStats').style.display='block';
+    // Populate quick stats from sample data
+    const sampleDocs=[
+      {conclusionItems:["Pitting","Scoring"], workshop_name:"CHOWGULE", createdAt:{toDate:()=>new Date("2026-06-01")}},
+      {conclusionItems:["Scoring","Wear"], workshop_name:"KATARIA", createdAt:{toDate:()=>new Date("2026-05-15")}},
+      {conclusionItems:["Corrosion","Pitting"], workshop_name:"ADINATH", createdAt:{toDate:()=>new Date("2026-05-10")}},
+    ];
+    document.getElementById('qsTotalReports').textContent = '3';
+    document.getElementById('qsMonthCount').textContent = '1';
+    document.getElementById('qsPittingCount').textContent = '2';
+    document.getElementById('qsDealerCount').textContent = '3';
     document.getElementById('urole').textContent = role;
     const banner=document.getElementById('roleBanner');
     const mainArea=document.querySelector('.body-pad');
@@ -797,6 +1018,21 @@ let cardData = null;
 let cardImgB64 = null;
 let parts = [];
 
+
+// ===== STEP PROGRESS =====
+function updateStepProgress(step){
+  ['sp1','sp2','sp3'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.className = 'sp-circle ' + (i+1 < step ? 'done' : i+1 === step ? 'active' : 'idle');
+    if(i+1 < step) el.textContent = '✓';
+    else el.textContent = String(i+1);
+  });
+  ['spLine1','spLine2'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if(el) el.className = 'sp-line ' + (i+1 < step ? 'done' : '');
+  });
+}
 // ===== TAB SWITCHING =====
 function switchTab(tab){
   ['new','history','dash'].forEach(t => {
@@ -1128,7 +1364,7 @@ Agar koi field clearly nahi padh paa rahe, us field mein "Manual check karo" lik
       `<tr><td class="k">${label}</td><td><input data-key="${key}" value="${esc(cardData[key])}"/></td></tr>`
     ).join('');
 
-    step1Head.classList.add('done');
+    step1Head.classList.add('done'); updateStepProgress(2);
     step1Head.querySelector('.badge').textContent = '✓';
     checkReady();
   }catch(err){
@@ -1224,7 +1460,7 @@ function renderParts(){
   });
 
   if (parts.length > 0){
-    step2Head.classList.add('done');
+    step2Head.classList.add('done'); updateStepProgress(3);
     step2Head.querySelector('.badge').textContent = '✓';
   } else {
     step2Head.classList.remove('done');
@@ -1235,7 +1471,22 @@ function renderParts(){
 function checkReady(){
   const ready = cardData && parts.length > 0 && parts.every(p => !p.loading && p.data);
   generateBtn.disabled = !ready;
-  generateBtn.textContent = ready ? 'Report Generate Karo →' : 'Pehle Card Aur Kam Se Kam 1 Part Photo Daalo';
+  generateBtn.textContent = ready ? 'Generate →' : 'Generate →';
+  const statusEl = document.getElementById('genStatus');
+  if(!statusEl) return;
+  if(ready){
+    statusEl.textContent = 'Sab ready hai — report generate karo!';
+    statusEl.style.color = 'var(--success)';
+    statusEl.style.fontWeight = '600';
+  } else if(cardData && parts.length === 0){
+    statusEl.textContent = 'Step 2: Part ki photo add karo';
+    statusEl.style.color = 'var(--warn)';
+    statusEl.style.fontWeight = '500';
+  } else if(!cardData){
+    statusEl.textContent = 'Step 1: Maruti card ki photo lo';
+    statusEl.style.color = 'var(--silver)';
+    statusEl.style.fontWeight = '500';
+  }
 }
 
 generateBtn.addEventListener('click', () => {
@@ -1265,11 +1516,21 @@ generateBtn.addEventListener('click', () => {
     <div style="height:22px"></div>
     <div class="report">
       <div class="report-cover">
-        <div class="footer-tag">Value Others &nbsp;|&nbsp; Inspire Innovation &nbsp;|&nbsp; Grow Responsibly &nbsp;|&nbsp; Win Together</div>
-        <svg class="r-logo" viewBox="0 0 100 60" fill="none"><path d="M50 4 L94 30 L50 56 L6 30 Z" stroke="#0073cf" stroke-width="5" fill="none"/></svg>
+        <div class="report-cover-logo">
+          <svg viewBox="0 0 100 60" fill="none">
+            <path d="M50 4 L94 30 L50 56 L6 30 Z" stroke="#ffffff" stroke-width="5" fill="none"/>
+            <path d="M50 18 L80 30 L50 42 L20 30 Z" fill="rgba(255,255,255,0.12)"/>
+          </svg>
+          <span>DANA</span>
+        </div>
         <h2>${esc(liveCard.causal_part_name || 'Part')} — Failure Analysis Report</h2>
-        <div class="model-line">Model — ${esc(liveCard.model || 'N/A')}</div>
+        <div class="model-line">Model: ${esc(liveCard.model || 'N/A')} &nbsp;·&nbsp; ${esc(liveCard.vin_no || '')}</div>
         <div class="claim-line">Claim No: ${esc(liveCard.claim_no || 'N/A')} &nbsp;·&nbsp; ${reportNo}</div>
+        <div class="report-status-bar">
+          <span class="rs-badge daipl">DAIPL Dharuhera</span>
+          <span class="rs-badge ai">✦ AI Generated</span>
+          <span class="rs-badge date">📅 ${today}</span>
+        </div>
       </div>
 
       <div class="report-section">
@@ -1402,6 +1663,13 @@ generateBtn.addEventListener('click', () => {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   }catch(e){ console.warn('Auto-save failed:', e.message); }
+  
+  // Toast notification
+  const toast = document.getElementById('toastMsg');
+  if(toast){ toast.style.display='block'; setTimeout(()=>{ toast.style.display='none'; }, 3000); }
+  
+  // Update step progress to done
+  updateStepProgress(3);
 });
 
 async function downloadPDF(){
