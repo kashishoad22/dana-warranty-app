@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DANA Warranty Report System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-firestore-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap');
+
+  :root{
+    --brand:#0057A8;
+    --brand-deep:#003A75;
+    --brand-light:#E8F1FB;
+    --ink:#0D1B2A;
+    --steel:#4A6080;
+    --silver:#8CA0B8;
+    --line:#D6E0EC;
+    --surface:#F4F7FB;
+    --card:#FFFFFF;
+    --success:#1B7A4D;
+    --danger:#C0392B;
+    --warn:#B87900;
+    --warn-bg:#FEF6E4;
+    --ok-bg:#EAF6F0;
+    --danger-bg:#FDECEA;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  body{
+    background: var(--surface);
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .shell{
+    width: 100%;
+    max-width: 680px;
+    min-height: 100vh;
+    background: var(--card);
+    box-shadow: 0 0 0 1px var(--line), 0 4px 32px rgba(0,57,120,0.07);
+  }
+
+  /* ===== LOGIN ===== */
+  .login-screen{
+    position:fixed; inset:0;
+    background: linear-gradient(160deg, #001E40 0%, #003A75 60%, #0057A8 100%);
+    display:flex; align-items:center; justify-content:center;
+    z-index:1000; padding:24px;
+  }
+  .login-card{
+    background:#fff; border-radius:12px; padding:36px 28px;
+    max-width:360px; width:100%;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  }
+  .login-logo{
+    display:flex; align-items:center; gap:10px; margin-bottom:20px;
+  }
+  .login-logo svg{ width:36px; height:36px; }
+  .login-logo span{
+    font-family:'Rajdhani', sans-serif;
+    font-size:22px; font-weight:700;
+    color: var(--ink); letter-spacing:1px;
+  }
+  .login-card h2{ font-size:17px; font-weight:700; color:var(--ink); }
+  .login-sub{ font-size:12.5px; color:var(--silver); margin:4px 0 22px; }
+  .login-card .f{ margin-bottom:12px; }
+  .login-card label{
+    display:block; font-size:11px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.5px;
+    color:var(--steel); margin-bottom:5px;
+  }
+  .login-card input{
+    width:100%; padding:11px 13px;
+    border:1.5px solid var(--line); border-radius:7px;
+    font-size:13.5px; font-family:'Inter',sans-serif;
+    outline:none; transition:border-color 0.15s;
+    color:var(--ink);
+  }
+  .login-card input:focus{ border-color:var(--brand); }
+  .login-error{ color:var(--danger); font-size:12px; margin-top:10px; min-height:14px; }
+
+  /* ===== HEADER ===== */
+  .app-header{
+    background: linear-gradient(135deg, #001E40, #003A75);
+    padding: 16px 20px;
+    display:flex; align-items:center; gap:12px;
+    position:sticky; top:0; z-index:100;
+    border-bottom:3px solid var(--brand);
+  }
+  .header-logo{ display:flex; align-items:center; gap:8px; flex:1; }
+  .header-logo svg{ width:30px; height:30px; }
+  .header-logo .title{
+    font-family:'Rajdhani',sans-serif;
+    font-weight:700; font-size:17px; color:#fff; letter-spacing:.5px;
+  }
+  .header-logo .sub{ font-size:10px; color:#8EADD4; margin-top:1px; }
+  .user-info{ text-align:right; }
+  .user-info .uname{ font-size:12px; font-weight:600; color:#fff; }
+  .user-info .urole{
+    font-size:10px; color:#8EADD4;
+    background:rgba(255,255,255,0.08); padding:2px 7px;
+    border-radius:10px; display:inline-block; margin-top:2px;
+  }
+  .logout-btn{
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2);
+    color:#fff; font-size:11px; padding:6px 11px;
+    border-radius:6px; cursor:pointer; margin-left:10px;
+    font-family:'Inter',sans-serif; font-weight:600;
+    transition:background 0.15s;
+  }
+  .logout-btn:hover{ background:rgba(255,255,255,0.15); }
+  .role-banner{
+    background:var(--warn-bg); border-bottom:1px solid #F5D97A;
+    color:var(--warn); font-size:12px; padding:9px 16px; text-align:center;
+    font-weight:500;
+  }
+
+  /* ===== NAV TABS ===== */
+  .nav-tabs{
+    display:flex; background:#fff;
+    border-bottom:2px solid var(--line);
+    position:sticky; top:65px; z-index:99;
+  }
+  .nav-tab{
+    flex:1; padding:13px 8px; text-align:center;
+    font-size:12.5px; font-weight:600; cursor:pointer;
+    color:var(--silver); border-bottom:3px solid transparent;
+    margin-bottom:-2px; transition:all 0.15s;
+  }
+  .nav-tab.active{
+    color:var(--brand); border-bottom-color:var(--brand);
+    background:#fff;
+  }
+
+  /* ===== STEP CARDS ===== */
+  .body-pad{ padding: 20px 16px; display:flex; flex-direction:column; gap:18px; }
+
+  .step{
+    background: var(--card);
+    border:1.5px solid var(--line);
+    border-radius:10px; overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,57,120,0.04);
+  }
+  .step-head{
+    display:flex; align-items:center; gap:10px;
+    padding:12px 16px;
+    border-bottom:1.5px solid var(--line);
+    background:var(--surface);
+  }
+  .step-head .badge{
+    width:26px; height:26px; border-radius:50%;
+    background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; flex-shrink:0;
+    box-shadow:0 2px 6px rgba(0,87,168,0.3);
+  }
+  .step-head.done .badge{
+    background: linear-gradient(135deg, var(--success), #145C39);
+  }
+  .step-head h3{ font-size:13.5px; font-weight:700; color:var(--ink); }
+  .step-head .sub{ font-size:11px; color:var(--silver); margin-left:auto; }
+  .step-body{ padding:16px; }
+
+  /* ===== UPLOAD DROP ===== */
+  .drop{
+    border:2px dashed #B8CDE4; border-radius:8px;
+    padding:28px 16px; text-align:center; cursor:pointer;
+    transition:all 0.15s; background:var(--surface);
+  }
+  .drop:hover{ background:var(--brand-light); border-color:var(--brand); }
+  .drop svg{ width:32px; height:32px; color:var(--brand); margin:0 auto 10px; display:block; }
+  .drop .cta{ font-weight:700; font-size:14px; color:var(--ink); }
+  .drop .sub2{ font-size:12px; color:var(--silver); margin-top:4px; }
+  input[type=file]{ display:none; }
+
+  /* ===== PHOTO PREVIEW ===== */
+  .thumb-wrap{ position:relative; line-height:0; border-radius:8px; overflow:hidden; }
+  .thumb-wrap img{ width:100%; display:block; max-height:220px; object-fit:cover; }
+  .scan-line{
+    position:absolute; left:0; right:0; height:46px;
+    background:linear-gradient(180deg,rgba(0,87,168,0) 0%,rgba(0,87,168,0.3) 50%,rgba(0,87,168,0) 100%);
+    animation:scan 1.5s ease-in-out infinite;
+  }
+  @keyframes scan{ 0%{top:-46px;} 100%{top:100%;} }
+  .scan-chip{
+    position:absolute; bottom:10px; left:10px;
+    background:rgba(0,30,64,0.85); color:#60AAFF;
+    font-size:10.5px; padding:4px 10px; border-radius:4px;
+    font-weight:600; letter-spacing:.3px;
+  }
+  .redo-chip{
+    position:absolute; top:10px; right:10px;
+    background:rgba(0,30,64,0.75); color:#fff; border:none;
+    font-size:11px; padding:5px 10px; border-radius:5px; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+
+  /* ===== FIELD TABLE ===== */
+  .field-table{ width:100%; border-collapse:collapse; margin-top:10px; }
+  .field-table tr{ border-bottom:1px solid var(--line); }
+  .field-table tr:last-child{ border-bottom:none; }
+  .field-table td{ padding:9px 4px; font-size:13px; vertical-align:middle; }
+  .field-table td.k{
+    color:var(--silver); font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.5px; width:36%; font-weight:600;
+  }
+  .field-table input{
+    width:100%; border:none; border-bottom:1.5px dashed var(--line);
+    font:inherit; font-weight:600; color:var(--brand-deep);
+    padding:3px 2px; background:transparent; font-size:13px;
+  }
+  .field-table input:focus{ outline:none; border-bottom-color:var(--brand); }
+
+  /* ===== SKELETON ===== */
+  .skeleton{ display:flex; flex-direction:column; gap:9px; }
+  .sk-line{
+    height:12px; border-radius:4px;
+    background:linear-gradient(90deg,var(--line),var(--surface),var(--line));
+    background-size:200% 100%; animation:shimmer 1.3s infinite;
+  }
+  @keyframes shimmer{ 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+
+  /* ===== PART PHOTOS ===== */
+  .part-grid{ display:flex; flex-direction:column; gap:10px; }
+  .part-item{
+    border:1.5px solid var(--line); border-radius:8px;
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+  .part-item img{ width:100%; max-height:170px; object-fit:cover; display:block; }
+  .part-item .obs{ padding:10px 12px; font-size:12.5px; background:var(--surface); }
+  .part-item .obs .tag{
+    display:inline-block; font-size:10px; font-weight:700;
+    letter-spacing:.4px; padding:3px 8px; border-radius:10px;
+    margin-bottom:5px; text-transform:uppercase;
+  }
+  .tag.defect{ background:var(--danger-bg); color:var(--danger); }
+  .tag.ok{ background:var(--ok-bg); color:var(--success); }
+  .part-item .obs .line{ color:var(--ink); font-weight:600; line-height:1.5; }
+  .part-item .obs .line:empty::before{ content:'Observation type karo...'; color:var(--silver); font-weight:500; }
+  .remove-part{
+    background:none; border:none; color:var(--danger); font-size:11px;
+    cursor:pointer; align-self:flex-end; padding:6px 12px; font-weight:600;
+  }
+  .stage-select{
+    width:100%; margin-top:8px; font-size:11.5px; padding:6px 8px;
+    border:1.5px solid var(--line); border-radius:6px;
+    background:#fff; color:var(--ink); font-family:'Inter',sans-serif;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn{
+    width:100%; padding:14px; border:none; border-radius:8px;
+    font-weight:700; font-size:14px; cursor:pointer; letter-spacing:.3px;
+    font-family:'Inter',sans-serif; transition:opacity 0.15s, transform 0.1s;
+  }
+  .btn-primary{
+    background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+    color:#fff;
+    box-shadow:0 4px 14px rgba(0,87,168,0.25);
+  }
+  .btn-primary:hover{ opacity:0.93; }
+  .btn-primary:active{ transform:scale(0.99); }
+  .btn-primary:disabled{
+    background:var(--line); color:var(--silver);
+    box-shadow:none; cursor:not-allowed;
+  }
+  .btn-pdf{
+    background: linear-gradient(135deg, #001E40, #003A75);
+    color:#fff; display:flex; align-items:center;
+    justify-content:center; gap:8px;
+    box-shadow:0 4px 14px rgba(0,30,64,0.2);
+  }
+  .btn-pdf:disabled{ background:var(--line); color:var(--silver); box-shadow:none; cursor:not-allowed; }
+
+  /* ===== ERROR ===== */
+  .error-box{
+    background:var(--danger-bg); border:1px solid #F3C2BC;
+    color:var(--danger); padding:11px 14px; border-radius:8px;
+    font-size:12.5px; line-height:1.5;
+  }
+  .helper{
+    font-size:11.5px; color:var(--silver);
+    text-align:center; line-height:1.6; padding:4px 8px;
+  }
+
+  /* ===== DASHBOARD ===== */
+  .dash-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:16px; }
+  .dash-card{
+    background:var(--card); border:1.5px solid var(--line);
+    border-radius:10px; padding:16px;
+    box-shadow:0 2px 8px rgba(0,57,120,0.04);
+  }
+  .dash-card .dc-val{
+    font-family:'Rajdhani',sans-serif;
+    font-size:34px; font-weight:700; color:var(--brand); line-height:1;
+  }
+  .dash-card .dc-label{
+    font-size:10.5px; color:var(--silver); margin-top:4px;
+    font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+  }
+  .dash-section{ padding:0 16px 16px; }
+  .dash-section h4{
+    font-size:12px; font-weight:700; color:var(--steel);
+    text-transform:uppercase; letter-spacing:.5px;
+    margin-bottom:12px; padding-top:6px;
+  }
+  .bar-row{ display:flex; align-items:center; gap:8px; margin-bottom:9px; }
+  .bar-label{
+    font-size:11.5px; color:var(--ink); width:120px;
+    flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    font-weight:500;
+  }
+  .bar-track{ flex:1; background:var(--line); border-radius:4px; height:8px; overflow:hidden; }
+  .bar-fill{ height:100%; background: linear-gradient(90deg, var(--brand), #2E86E8); border-radius:4px; transition:width 0.5s ease; }
+  .bar-count{ font-size:11px; color:var(--silver); width:22px; text-align:right; flex-shrink:0; font-weight:600; }
+
+  /* ===== HISTORY ===== */
+  .history-list{ display:flex; flex-direction:column; gap:10px; padding:16px; }
+  .history-item{
+    background:var(--card); border:1.5px solid var(--line);
+    border-radius:10px; padding:13px 15px; cursor:pointer;
+    transition:all 0.15s;
+    box-shadow:0 1px 4px rgba(0,57,120,0.04);
+  }
+  .history-item:hover{ border-color:var(--brand); background:var(--brand-light); }
+  .history-item .hi-top{
+    display:flex; justify-content:space-between;
+    font-size:13px; font-weight:700; color:var(--ink);
+  }
+  .history-item .hi-sub{ font-size:11.5px; color:var(--steel); margin-top:4px; }
+  .history-item .hi-meta{ font-size:10.5px; color:var(--silver); margin-top:6px; }
+  .status-badge{ display:inline-block; font-size:10.5px; font-weight:700; padding:2px 9px; border-radius:20px; letter-spacing:0.3px; }
+  .status-badge.pending{ background:var(--warn-bg); color:var(--warn); }
+  .status-badge.accepted{ background:var(--ok-bg); color:var(--success); }
+  .status-badge.rejected{ background:var(--danger-bg); color:var(--danger); }
+  .status-select{ font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; padding:6px 10px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  .history-detail{
+    background:var(--surface); border:1.5px solid var(--line);
+    border-radius:8px; padding:14px; margin-top:8px;
+  }
+  .history-detail h5{ font-size:12.5px; color:var(--brand-deep); margin-bottom:8px; font-weight:700; }
+  .empty-state{ text-align:center; color:var(--silver); font-size:13.5px; padding:48px 16px; line-height:1.6; }
+
+  /* ===== REPORT ===== */
+  .report{
+    background:#fff; border:1.5px solid var(--line);
+    border-radius:10px; overflow:hidden;
+    box-shadow:0 8px 24px rgba(0,57,120,0.08);
+  }
+  .report-cover{
+    background: linear-gradient(160deg, #001E40, #003A75);
+    padding:28px 22px 24px;
+    border-bottom:4px solid var(--brand);
+  }
+  .report-cover .footer-tag{ font-size:10.5px; color:#5C84B0; margin-bottom:16px; letter-spacing:.3px; }
+  .report-cover h2{ font-size:20px; font-weight:800; color:#fff; line-height:1.3; }
+  .report-cover .model-line{ color:#60AAFF; font-weight:600; font-size:13.5px; margin-top:8px; }
+  .report-cover .claim-line{ color:#8EADD4; font-size:12.5px; margin-top:3px; }
+  .report-section{ padding:18px 22px; border-bottom:1px solid var(--line); }
+  .report-section:last-child{ border-bottom:none; }
+  .report-section h3{
+    font-size:13.5px; font-weight:800; color:var(--ink);
+    border-left:4px solid var(--brand); padding-left:10px;
+    margin-bottom:13px; text-transform:uppercase; letter-spacing:.3px;
+  }
+  .r-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .r-table td{ padding:7px 8px; border-bottom:1px solid var(--line); }
+  .r-table td.rk{ color:var(--silver); width:42%; font-weight:600; }
+  .r-table td.rv{ font-weight:700; color:var(--ink); }
+  .r-table tr:nth-child(even){ background:var(--surface); }
+  .card-thumb{ width:100%; border-radius:6px; margin-top:12px; border:1px solid var(--line); }
+  .r-photo-row{ display:flex; flex-direction:column; gap:12px; margin-top:6px; }
+  .r-photo-item{ display:flex; gap:12px; align-items:flex-start; }
+  .r-photo-item img{
+    width:90px; height:90px; object-fit:cover;
+    border-radius:6px; border:1.5px solid var(--line); flex-shrink:0;
+  }
+  .r-obs-tag{
+    font-size:9.5px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.4px; padding:3px 8px; border-radius:10px;
+    display:inline-block; margin-bottom:5px;
+  }
+  .r-obs-text{ font-size:12.5px; color:var(--ink); font-weight:600; line-height:1.5; }
+  .conclusion-list{ padding-left:0; list-style:none; counter-reset:cl; }
+  .conclusion-list li{
+    counter-increment:cl; font-size:13px; line-height:1.55;
+    padding:6px 0 6px 26px; position:relative; color:var(--ink);
+    border-bottom:1px solid var(--line);
+  }
+  .conclusion-list li:last-child{ border-bottom:none; }
+  .conclusion-list li::before{
+    content:counter(cl) "."; position:absolute; left:0;
+    font-weight:800; color:var(--brand);
+  }
+  .conclusion-list li.action{
+    background:var(--brand-light); border-radius:6px;
+    font-weight:700; padding:10px 12px 10px 30px; margin-top:8px;
+    border:1px solid #B8CDE4; border-bottom:1px solid #B8CDE4 !important;
+  }
+  .conclusion-list li.action::before{ content:"→"; color:var(--brand); }
+  .cause-card{
+    background:var(--surface); border:1.5px solid var(--line);
+    border-radius:8px; padding:12px 14px; margin-bottom:8px;
+  }
+  .cause-card .cc-title{ font-size:12.5px; font-weight:800; color:var(--brand-deep); margin-bottom:4px; }
+  .cause-card .cc-desc{ font-size:12px; color:var(--steel); line-height:1.5; }
+  .manual-note{
+    font-size:11.5px; color:var(--warn); background:var(--warn-bg);
+    border:1px solid #F5D97A; padding:9px 12px; border-radius:6px;
+    margin-top:10px; line-height:1.5;
+  }
+  .dim-table input{
+    width:100%; border:none; background:transparent;
+    font:inherit; font-weight:600; color:var(--ink); font-size:11px;
+  }
+  .dim-table input::placeholder{ color:#C8D5E2; }
+  .dim-table td{ font-size:10.5px; padding:5px 5px; }
+  .dim-table td.rk{ width:26%; }
+  .report-footer{
+    padding:14px 22px; background:#001E40;
+    color:#5C84B0; font-size:10.5px;
+    display:flex; justify-content:space-between;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- LOGIN SCREEN -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">
+        <svg viewBox="0 0 100 60" fill="none">
+          <path d="M50 4 L94 30 L50 56 L6 30 Z" stroke="#0057A8" stroke-width="6" fill="none"/>
+          <path d="M50 18 L80 30 L50 42 L20 30 Z" fill="rgba(0,87,168,0.12)"/>
+        </svg>
+        <span>DANA</span>
+      </div>
+      <h2>Warranty Report System</h2>
+      <div class="login-sub">Company email aur password se login karo</div>
+      <div class="f"><label>Email</label><input type="email" id="loginEmail" placeholder="test@dana.com"></div>
+      <div class="f"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-primary" style="margin-top:6px" onclick="doLogin()">Login</button>
+      <div class="login-error" id="loginError"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="appContent" style="display:none">
+
+    <div class="app-header">
+      <div class="header-logo">
+        <svg viewBox="0 0 100 60" fill="none">
+          <path d="M50 4 L94 30 L50 56 L6 30 Z" stroke="#ffffff" stroke-width="5" fill="none"/>
+          <path d="M50 16 L82 30 L50 44 L18 30 Z" fill="rgba(255,255,255,0.15)"/>
+        </svg>
+        <div>
+          <div class="title">DANA ANAND</div>
+          <div class="sub">AI Warranty Analysis System</div>
+        </div>
+      </div>
+      <div class="user-info">
+        <div class="uname" id="uname">—</div>
+        <div class="urole" id="urole">—</div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+    <div class="role-banner" id="roleBanner" style="display:none"></div>
+
+    <div class="nav-tabs">
+      <div class="nav-tab active" id="navNew" onclick="switchTab('new')">✏️ New Report</div>
+      <div class="nav-tab" id="navHistory" onclick="switchTab('history')">📋 History</div>
+      <div class="nav-tab" id="navDash" onclick="switchTab('dash')">📊 Dashboard</div>
+    </div>
+
+    <div id="panelNew">
+    <div class="body-pad">
+
+      <!-- STEP 1: Maruti Card -->
+      <div class="step" id="step1">
+        <div class="step-head" id="step1Head">
+          <div class="badge">1</div>
+          <h3>Maruti FTIR / Warranty Card</h3>
+          <div class="sub">VIN, Claim, Mileage</div>
+        </div>
+        <div class="step-body" id="step1Body">
+          <div class="drop" id="cardDrop">
+            <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" style="display:block;margin:0 auto;">
+              <path d="M3 7h3l1.5-2h7L16 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="13" r="3.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="cta">Card ki Photo Lo</div>
+            <div class="sub2">Maruti FTIR / Warranty Part Sending Form</div>
+          </div>
+          <input type="file" id="cardInput" accept="image/*" capture="environment">
+        </div>
+      </div>
+
+      <!-- STEP 2: Part Photos -->
+      <div class="step" id="step2">
+        <div class="step-head" id="step2Head">
+          <div class="badge">2</div>
+          <h3>Failed Part Photos</h3>
+          <div class="sub">Bearing, Gear, etc.</div>
+        </div>
+        <div class="step-body">
+          <div class="part-grid" id="partGrid"></div>
+          <div style="height:10px"></div>
+          <div class="drop" id="partDrop">
+            <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" style="display:block;margin:0 auto;">
+              <path d="M3 7h3l1.5-2h7L16 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="13" r="3.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="cta">Part ki Photo Add Karo</div>
+            <div class="sub2">Bearing, gear, cup — jitni photos chahiye utni add karo</div>
+          </div>
+          <input type="file" id="partInput" accept="image/*" capture="environment">
+        </div>
+      </div>
+
+      <div id="errorSection" style="display:none;"><div class="error-box" id="errorBox"></div></div>
+
+      <button class="btn btn-primary" id="generateBtn" disabled>Pehle Card Aur Kam Se Kam 1 Part Photo Daalo</button>
+
+      <div id="reportSection"></div>
+
+      <div class="helper">Yeh <b style="color:var(--dana-blue)">working app</b> hai — photo seedha AI ko jaati hai. Dimensional/torque values abhi manual hi bharni hongi (instrument se aate hain), baaki sab auto hai.</div>
+
+    </div><!-- end body-pad -->
+    </div><!-- end panelNew -->
+
+    <!-- HISTORY PANEL -->
+    <div id="panelHistory" style="display:none">
+      <div style="padding:16px 16px 0">
+        <button class="btn btn-primary" id="toggleOldReportForm" style="background:linear-gradient(135deg,#001E40,#003A75)">+ Purani Report Add Karo</button>
+      </div>
+      <div class="step" id="oldReportForm" style="display:none; margin:14px 16px 0;">
+        <div class="step-head"><div class="badge">📋</div><h3>Purani Report Manually Add Karo</h3></div>
+        <div class="step-body">
+          <table class="field-table" id="oldReportTable">
+            <tr><td class="k">VIN No</td><td><input data-key="vin_no"/></td></tr>
+            <tr><td class="k">Claim No</td><td><input data-key="claim_no"/></td></tr>
+            <tr><td class="k">Model</td><td><input data-key="model"/></td></tr>
+            <tr><td class="k">Registration Date</td><td><input data-key="registration_date"/></td></tr>
+            <tr><td class="k">Repair Date</td><td><input data-key="repair_date"/></td></tr>
+            <tr><td class="k">Mileage</td><td><input data-key="mileage"/></td></tr>
+            <tr><td class="k">Workshop Name</td><td><input data-key="workshop_name"/></td></tr>
+            <tr><td class="k">Workshop Location</td><td><input data-key="workshop_location"/></td></tr>
+            <tr><td class="k">Customer Issue</td><td><input data-key="customer_issue_description"/></td></tr>
+            <tr><td class="k">Dealer Observation</td><td><input data-key="dealer_observation"/></td></tr>
+            <tr><td class="k">Causal Part Name</td><td><input data-key="causal_part_name"/></td></tr>
+            <tr><td class="k">Causal Part No</td><td><input data-key="causal_part_no"/></td></tr>
+            <tr><td class="k">Status</td><td>
+              <select class="status-select" id="oldReportStatus" style="width:100%">
+                <option value="Pending">🟡 Pending</option>
+                <option value="Accepted">🟢 Accepted</option>
+                <option value="Rejected">🔴 Rejected</option>
+              </select>
+            </td></tr>
+          </table>
+          <div style="margin-top:12px;">
+            <label style="display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--steel); margin-bottom:5px;">Conclusion / Observations (ek line per point)</label>
+            <textarea id="oldReportConclusion" rows="3" style="width:100%; border:1.5px solid var(--line); border-radius:7px; padding:9px; font-family:'Inter',sans-serif; font-size:13px;" placeholder="Har line ek observation — Enter dabao next point ke liye"></textarea>
+          </div>
+          <div style="margin-top:10px;">
+            <label style="display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--steel); margin-bottom:5px;">Final Note / Action</label>
+            <input id="oldReportFinalNote" style="width:100%; border:1.5px solid var(--line); border-radius:7px; padding:9px; font-family:'Inter',sans-serif; font-size:13px;" placeholder="e.g. Component replace karo"/>
+          </div>
+          <button class="btn btn-primary" id="saveOldReportBtn" style="margin-top:14px;">Save to History</button>
+          <div class="login-error" id="oldReportMsg"></div>
+        </div>
+      </div>
+      <div id="historyContent"></div>
+    </div>
+
+    <!-- DASHBOARD PANEL -->
+    <div id="panelDash" style="display:none">
+      <div id="dashContent"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ===== FIREBASE LOGIN =====
+const firebaseConfig = {
+  apiKey: "AIzaSyCahXVRUsN7FtuArF6JePhzoEbRO6TKZ5s",
+  authDomain: "dana-warranty-app.firebaseapp.com",
+  projectId: "dana-warranty-app",
+  storageBucket: "dana-warranty-app.firebasestorage.app",
+  messagingSenderId: "528242704091",
+  appId: "1:528242704091:web:34fcb20da793a7908016fe"
+};
+// ===== GEMINI AI (Google AI Studio) =====
+const GEMINI_API_KEY = "AQ.Ab8RN6ID6xdESi-s47e_04IkJIo25nGxf_zOIQtOGkRhS02IAw";
+const GEMINI_MODEL = "gemini-2.0-flash";
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Naya engineer/manager/quality add karna ho to yahan email + role daalo:
+const ROLE_MAP = {
+  'test@dana.com': 'Engineer',
+  // 'manager@dana.com': 'Manager',
+  // 'quality@dana.com': 'Quality',
+};
+
+function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPassword').value;
+  const errEl=document.getElementById('loginError');
+  errEl.textContent='';
+  if(!email||!pass){errEl.textContent='Email aur password dono daalo';return;}
+  auth.signInWithEmailAndPassword(email,pass).catch((err)=>{
+    errEl.textContent = 'Error: ' + err.code + ' — ' + err.message;
+  });
+}
+function doLogout(){ auth.signOut(); }
+
+auth.onAuthStateChanged(user=>{
+  const loginScreen=document.getElementById('loginScreen');
+  const appContent=document.getElementById('appContent');
+  if(user){
+    loginScreen.style.display='none';
+    appContent.style.display='block';
+    const role=ROLE_MAP[user.email]||'Engineer';
+    document.getElementById('uname').textContent = user.email.split('@')[0];
+    document.getElementById('urole').textContent = role;
+    const banner=document.getElementById('roleBanner');
+    const mainArea=document.querySelector('.body-pad');
+    if(role!=='Engineer'){
+      banner.style.display='block';
+      banner.textContent='👀 View-only access ('+role+') — sirf Engineer role naya report create kar sakta hai.';
+      mainArea.classList.add('view-only');
+    } else {
+      banner.style.display='none';
+      mainArea.classList.remove('view-only');
+    }
+  } else {
+    loginScreen.style.display='flex';
+    appContent.style.display='none';
+  }
+});
+
+// ===== REPORT GENERATOR =====
+const cardDrop = document.getElementById('cardDrop');
+const cardInput = document.getElementById('cardInput');
+const step1Body = document.getElementById('step1Body');
+const step1Head = document.getElementById('step1Head');
+
+const partDrop = document.getElementById('partDrop');
+const partInput = document.getElementById('partInput');
+const partGrid = document.getElementById('partGrid');
+const step2Head = document.getElementById('step2Head');
+
+const generateBtn = document.getElementById('generateBtn');
+const reportSection = document.getElementById('reportSection');
+const errorSection = document.getElementById('errorSection');
+const errorBox = document.getElementById('errorBox');
+
+let cardData = null;
+let cardImgB64 = null;
+let parts = [];
+
+// ===== TAB SWITCHING =====
+function switchTab(tab){
+  ['new','history','dash'].forEach(t => {
+    document.getElementById('panel' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('nav' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+  });
+  if (tab === 'history') loadHistory();
+  if (tab === 'dash') loadDashboard();
+}
+
+// ===== HISTORY =====
+async function loadHistory(){
+  const el = document.getElementById('historyContent');
+  el.innerHTML = '<div class="empty-state">Loading...</div>';
+  try{
+    const snap = await db.collection('reports').orderBy('createdAt','desc').limit(50).get();
+    if(snap.empty){ el.innerHTML = '<div class="empty-state">Abhi koi report nahi hai. Pehli report banao!</div>'; return; }
+    el.innerHTML = '<div class="history-list" id="hList"></div>';
+    const list = document.getElementById('hList');
+    snap.forEach(doc => {
+      const d = doc.data();
+      const docId = doc.id;
+      const dt = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleString('en-IN') : '—';
+      const st = (d.status || 'Pending');
+      const stClass = st.toLowerCase();
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.innerHTML = `
+        <div class="hi-top"><span>${esc(d.causal_part_name||'Part')}</span><span style="color:var(--dana-blue)">${esc(d.claim_no||'—')}</span></div>
+        <div class="hi-sub">VIN: ${esc(d.vin_no||'—')} &nbsp;·&nbsp; ${esc(d.model||'—')}</div>
+        <div class="hi-meta">👤 ${esc(d.createdBy||'')} &nbsp;·&nbsp; 🕐 ${dt} &nbsp;·&nbsp; <span class="status-badge ${esc(stClass)}">${esc(st)}</span></div>
+      `;
+      item.addEventListener('click', ()=>{
+        const ex = item.nextElementSibling;
+        if(ex && ex.classList.contains('history-detail')){ ex.remove(); return; }
+        const detail = document.createElement('div');
+        detail.className = 'history-detail';
+        detail.innerHTML = `
+          <h5>Claim Status</h5>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <select class="status-select" data-docid="${esc(docId)}">
+              <option value="Pending" ${st==='Pending'?'selected':''}>🟡 Pending</option>
+              <option value="Accepted" ${st==='Accepted'?'selected':''}>🟢 Accepted</option>
+              <option value="Rejected" ${st==='Rejected'?'selected':''}>🔴 Rejected</option>
+            </select>
+            <span class="status-save-msg" style="font-size:11px; color:var(--success); display:none;">Saved ✓</span>
+          </div>
+          <h5>Failure History</h5>
+          <table class="r-table" style="font-size:11.5px">
+            <tr><td class="rk">VIN No.</td><td class="rv">${esc(d.vin_no)}</td></tr>
+            <tr><td class="rk">Claim No.</td><td class="rv">${esc(d.claim_no)}</td></tr>
+            <tr><td class="rk">Repair Date</td><td class="rv">${esc(d.repair_date)}</td></tr>
+            <tr><td class="rk">Mileage</td><td class="rv">${esc(d.mileage)}</td></tr>
+            <tr><td class="rk">Workshop</td><td class="rv">${esc(d.workshop_name)}</td></tr>
+            <tr><td class="rk">Customer Issue</td><td class="rv">${esc(d.customer_issue_description)}</td></tr>
+            <tr><td class="rk">Dealer Observation</td><td class="rv">${esc(d.dealer_observation)}</td></tr>
+          </table>
+          <h5 style="margin-top:10px">Conclusion</h5>
+          <ol class="conclusion-list">
+            ${(d.conclusionItems||[]).map(i=>`<li>${esc(i)}</li>`).join('')}
+            ${d.finalNote ? `<li class="action">${esc(d.finalNote)}</li>` : ''}
+          </ol>
+        `;
+        item.after(detail);
+        const sel = detail.querySelector('.status-select');
+        const msg = detail.querySelector('.status-save-msg');
+        sel.addEventListener('change', async ()=>{
+          const newStatus = sel.value;
+          try{
+            await db.collection('reports').doc(docId).update({ status: newStatus });
+            const badge = item.querySelector('.status-badge');
+            badge.textContent = newStatus;
+            badge.className = 'status-badge ' + newStatus.toLowerCase();
+            msg.style.display = 'inline';
+            setTimeout(()=>{ msg.style.display='none'; }, 1500);
+          }catch(err){
+            alert('Status update nahi ho paaya: ' + err.message);
+          }
+        });
+      });
+      list.appendChild(item);
+    });
+  }catch(err){
+    el.innerHTML = `<div class="empty-state">Error: ${esc(err.message)}<br><small>Firestore rules set karo Firebase Console mein</small></div>`;
+  }
+}
+
+// ===== DASHBOARD =====
+async function loadDashboard(){
+  const el = document.getElementById('dashContent');
+  el.innerHTML = '<div class="empty-state">Dashboard load ho raha hai...</div>';
+  try{
+    const snap = await db.collection('reports').get();
+    const docs = [];
+    snap.forEach(doc => docs.push(doc.data()));
+    if(!docs.length){ el.innerHTML = '<div class="empty-state">Abhi koi data nahi hai. Pehli report banao!</div>'; return; }
+
+    // Total reports
+    const total = docs.length;
+
+    // This month
+    const now = new Date();
+    const thisMonth = docs.filter(d => {
+      if(!d.createdAt || !d.createdAt.toDate) return false;
+      const dt = d.createdAt.toDate();
+      return dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear();
+    }).length;
+
+    // Dealer counts
+    const dealerCount = {};
+    docs.forEach(d => { const k = d.workshop_name || 'Unknown'; dealerCount[k] = (dealerCount[k]||0) + 1; });
+    const topDealers = Object.entries(dealerCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const maxDealer = topDealers[0] ? topDealers[0][1] : 1;
+
+    // Defect counts
+    const defectCount = {};
+    docs.forEach(d => {
+      (d.conclusionItems||[]).forEach(line => {
+        ['Pitting','Scoring','Wear','Corrosion','Flank'].forEach(defect => {
+          if(line.toLowerCase().includes(defect.toLowerCase())){
+            defectCount[defect] = (defectCount[defect]||0) + 1;
+          }
+        });
+      });
+    });
+    const topDefects = Object.entries(defectCount).sort((a,b)=>b[1]-a[1]);
+    const maxDefect = topDefects[0] ? topDefects[0][1] : 1;
+
+    // Engineer counts
+    const engCount = {};
+    docs.forEach(d => { const k = d.createdBy || 'Unknown'; engCount[k] = (engCount[k]||0) + 1; });
+    const topEng = Object.entries(engCount).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+    // Status counts
+    const statusCount = { Pending:0, Accepted:0, Rejected:0 };
+    docs.forEach(d => { const s = d.status || 'Pending'; if(statusCount[s]!==undefined) statusCount[s]++; });
+
+    const barRows = (items, max) => items.map(([label, count]) => `
+      <div class="bar-row">
+        <div class="bar-label" title="${esc(label)}">${esc(label.length > 18 ? label.slice(0,18)+'…' : label)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/max*100)}%"></div></div>
+        <div class="bar-count">${count}</div>
+      </div>`).join('');
+
+    el.innerHTML = `
+      <div class="dash-grid">
+        <div class="dash-card">
+          <div class="dc-val">${total}</div>
+          <div class="dc-label">Total Reports</div>
+        </div>
+        <div class="dash-card">
+          <div class="dc-val" style="color:var(--green)">${thisMonth}</div>
+          <div class="dc-label">Is Mahine</div>
+        </div>
+      </div>
+
+      <div class="dash-section">
+        <h4>✅ Claim Status</h4>
+        <div class="dash-grid" style="grid-template-columns:repeat(3,1fr); margin-top:4px;">
+          <div class="dash-card"><div class="dc-val" style="color:var(--warn)">${statusCount.Pending}</div><div class="dc-label">Pending</div></div>
+          <div class="dash-card"><div class="dc-val" style="color:var(--success)">${statusCount.Accepted}</div><div class="dc-label">Accepted</div></div>
+          <div class="dash-card"><div class="dc-val" style="color:var(--danger)">${statusCount.Rejected}</div><div class="dc-label">Rejected</div></div>
+        </div>
+      </div>
+
+      <div class="dash-section">
+        <h4>🏪 Top Dealers (Claim Count)</h4>
+        ${topDealers.length ? barRows(topDealers, maxDealer) : '<div class="empty-state" style="padding:12px">Data nahi hai abhi</div>'}
+      </div>
+
+      <div class="dash-section">
+        <h4>🔧 Sabse Common Defects</h4>
+        ${topDefects.length ? barRows(topDefects, maxDefect) : '<div class="empty-state" style="padding:12px">Defect data nahi hai abhi</div>'}
+      </div>
+
+      <div class="dash-section">
+        <h4>👷 Engineer Activity</h4>
+        ${barRows(topEng, topEng[0] ? topEng[0][1] : 1)}
+      </div>
+    `;
+  }catch(err){
+    el.innerHTML = `<div class="empty-state">Dashboard load nahi ho paaya: ${esc(err.message)}<br><small>Firestore rules set karo</small></div>`;
+  }
+}
+
+// ===== ADD OLD REPORT MANUALLY =====
+document.getElementById('toggleOldReportForm').addEventListener('click', () => {
+  const f = document.getElementById('oldReportForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('saveOldReportBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('saveOldReportBtn');
+  const msg = document.getElementById('oldReportMsg');
+  const d = {};
+  document.querySelectorAll('#oldReportTable input').forEach(inp => d[inp.dataset.key] = inp.value.trim());
+  if (!d.vin_no && !d.claim_no){
+    msg.style.color = 'var(--danger)';
+    msg.textContent = 'Kam se kam VIN No ya Claim No daalo.';
+    return;
+  }
+  const conclusionItems = document.getElementById('oldReportConclusion').value
+    .split('\n').map(s => s.trim()).filter(Boolean);
+  const finalNote = document.getElementById('oldReportFinalNote').value.trim();
+  const status = document.getElementById('oldReportStatus').value;
+  btn.disabled = true; btn.textContent = 'Save ho raha hai...';
+  try{
+    await db.collection('reports').add({
+      ...d,
+      reportNo: 'DAIPL-FA-OLD-' + Math.floor(1000+Math.random()*9000),
+      conclusionItems,
+      finalNote,
+      causeMap: {},
+      createdBy: (auth.currentUser && auth.currentUser.email) || 'unknown',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      status
+    });
+    msg.style.color = 'var(--success)';
+    msg.textContent = 'Purani report history mein add ho gayi ✓';
+    document.querySelectorAll('#oldReportTable input').forEach(inp => inp.value = '');
+    document.getElementById('oldReportConclusion').value = '';
+    document.getElementById('oldReportFinalNote').value = '';
+    loadHistory();
+  }catch(err){
+    msg.style.color = 'var(--danger)';
+    msg.textContent = 'Error: ' + err.message;
+  }
+  btn.disabled = false; btn.textContent = 'Save to History';
+});
+
+cardDrop.addEventListener('click', () => cardInput.click());
+partDrop.addEventListener('click', () => partInput.click());
+
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        const MAX_DIM = 1280;
+        if (width > MAX_DIM || height > MAX_DIM){
+          if (width > height){ height = Math.round(height * MAX_DIM / width); width = MAX_DIM; }
+          else { width = Math.round(width * MAX_DIM / height); height = MAX_DIM; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        resolve(dataUrl.split(',')[1]);
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function showErr(msg){ errorSection.style.display='block'; errorBox.textContent=msg; }
+function clearErr(){ errorSection.style.display='none'; }
+
+async function callGemini(base64, mediaType, promptText){
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { text: promptText },
+          { inline_data: { mime_type: mediaType, data: base64 } }
+        ]
+      }],
+      generationConfig: { response_mime_type: "application/json", temperature: 0.2 }
+    })
+  });
+  const data = await response.json();
+  if (data.error) throw new Error(data.error.message || 'Gemini API error');
+  const candidate = data.candidates && data.candidates[0];
+  const textBlock = candidate && candidate.content && candidate.content.parts && candidate.content.parts[0];
+  if (!textBlock || !textBlock.text) throw new Error('AI response empty');
+  let cleaned = textBlock.text.replace(/```json|```/g, '').trim();
+  return JSON.parse(cleaned);
+}
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+cardInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  clearErr();
+  const b64 = await fileToBase64(file);
+  const mediaType = 'image/jpeg'; // resized+re-encoded as JPEG for speed
+  cardImgB64 = `data:${mediaType};base64,${b64}`;
+
+  step1Body.innerHTML = `
+    <div class="thumb-wrap">
+      <img src="${cardImgB64}"/>
+      <div class="scan-line" id="cardScanLine"></div>
+      <div class="scan-chip" id="cardScanChip">CARD READ HO RAHA HAI...</div>
+      <button class="redo-chip" id="cardRedo">Dobara</button>
+    </div>
+    <div style="height:12px"></div>
+    <table class="field-table" id="cardFieldTable">
+      <tr><td colspan="2"><div class="skeleton"><div class="sk-line" style="width:90%"></div><div class="sk-line" style="width:75%"></div><div class="sk-line" style="width:85%"></div><div class="sk-line" style="width:60%"></div></div></td></tr>
+    </table>
+  `;
+  document.getElementById('cardRedo').addEventListener('click', () => { cardData=null; resetCard(); checkReady(); });
+
+  try{
+    cardData = await callGemini(b64, mediaType, `Yeh ek Maruti Suzuki FTIR / Warranty Part Sending Form ka photo hai jo workshop/dealer ne fill kiya hai. Card padh kar sirf JSON return karo, koi extra text nahi:
+
+{
+  "vin_no": "VIN number jo likha hai",
+  "claim_no": "Claim No.",
+  "model": "Model field",
+  "registration_date": "Registration Date",
+  "repair_date": "Repair date",
+  "mileage": "Mileage (with km)",
+  "diff_assy_mfg_date": "Diff Assy Mfg. Date — agar likha ho",
+  "customer_issue_description": "Customer Complaint / Customer Issue description text",
+  "dealer_observation": "Dealer Observation text",
+  "workshop_name": "Workshop Name",
+  "workshop_location": "Workshop Location — agar alag se likha ho",
+  "warranty_meeting_date": "Warranty Meeting Date — agar likha ho",
+  "causal_part_no": "Causal Part No",
+  "causal_part_name": "Causal Part Name"
+}
+
+Agar koi field clearly nahi padh paa rahe, us field mein "Manual check karo" likho — andaza mat lagao.`);
+
+    document.getElementById('cardScanLine').style.display = 'none';
+    document.getElementById('cardScanChip').textContent = 'CARD READ HO GAYA';
+    document.getElementById('cardScanChip').style.color = '#7ee2a8';
+
+    const rows = [
+      ['VIN No','vin_no'],['Claim No','claim_no'],['Model','model'],
+      ['Registration Date','registration_date'],['Repair Date','repair_date'],['Mileage','mileage'],
+      ['Diff Assy Mfg. Date','diff_assy_mfg_date'],
+      ['Customer Issue Description','customer_issue_description'],['Dealer Observation','dealer_observation'],
+      ['Workshop Name','workshop_name'],['Workshop Location','workshop_location'],
+      ['Warranty Meeting Date','warranty_meeting_date'],
+      ['Causal Part No','causal_part_no'],['Causal Part Name','causal_part_name']
+    ];
+    document.getElementById('cardFieldTable').innerHTML = rows.map(([label,key]) =>
+      `<tr><td class="k">${label}</td><td><input data-key="${key}" value="${esc(cardData[key])}"/></td></tr>`
+    ).join('');
+
+    step1Head.classList.add('done');
+    step1Head.querySelector('.badge').textContent = '✓';
+    checkReady();
+  }catch(err){
+    // AI scan unavailable/failed — fall back to manual entry so the app stays usable
+    cardData = {
+      vin_no:'', claim_no:'', model:'', registration_date:'', repair_date:'', mileage:'',
+      diff_assy_mfg_date:'', customer_issue_description:'', dealer_observation:'',
+      workshop_name:'', workshop_location:'', warranty_meeting_date:'',
+      causal_part_no:'', causal_part_name:''
+    };
+    document.getElementById('cardScanLine').style.display = 'none';
+    document.getElementById('cardScanChip').textContent = 'AUTO-READ NAHI HUA — MANUALLY FILL KARO';
+    document.getElementById('cardScanChip').style.color = '#f0b429';
+
+    const rows = [
+      ['VIN No','vin_no'],['Claim No','claim_no'],['Model','model'],
+      ['Registration Date','registration_date'],['Repair Date','repair_date'],['Mileage','mileage'],
+      ['Diff Assy Mfg. Date','diff_assy_mfg_date'],
+      ['Customer Issue Description','customer_issue_description'],['Dealer Observation','dealer_observation'],
+      ['Workshop Name','workshop_name'],['Workshop Location','workshop_location'],
+      ['Warranty Meeting Date','warranty_meeting_date'],
+      ['Causal Part No','causal_part_no'],['Causal Part Name','causal_part_name']
+    ];
+    document.getElementById('cardFieldTable').innerHTML = rows.map(([label,key]) =>
+      `<tr><td class="k">${label}</td><td><input data-key="${key}" placeholder="Type ${esc(label)}"/></td></tr>`
+    ).join('');
+
+    step1Head.classList.add('done');
+    step1Head.querySelector('.badge').textContent = '✓';
+    checkReady();
+  }
+});
+
+function resetCard(){
+  step1Body.innerHTML = `
+    <div class="drop" id="cardDrop2">
+      <div class="cta">Card ki Photo Lo</div>
+      <div class="sub2">Maruti FTIR / Warranty Part Sending Form</div>
+    </div>`;
+  document.getElementById('cardDrop2').addEventListener('click', () => cardInput.click());
+  step1Head.classList.remove('done');
+  step1Head.querySelector('.badge').textContent = '1';
+}
+
+partInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  clearErr();
+  const b64 = await fileToBase64(file);
+  const mediaType = 'image/jpeg'; // resized+re-encoded as JPEG for speed
+  const imgSrc = `data:${mediaType};base64,${b64}`;
+
+  const idx = parts.length;
+  parts.push({ imgSrc, data: null, loading: true, stage: 'teardown' });
+  renderParts();
+  checkReady();
+
+  try{
+    const result = await callGemini(b64, mediaType, `Yeh ek automotive axle/differential ke part ka close-up photo hai (bearing, gear, cup, lock plate, ya koi aur internal part), failure analysis/tear-down inspection ke liye. Sirf JSON return karo, koi extra text nahi:
+
+{
+  "component": "yeh kaunsa part hai",
+  "side_guess": "agar pata chale to Ring Gear side / Pinion Gear side / N/A",
+  "defect_type": "ek shabd mein defect: Pitting / Scoring / Wear / Corrosion / Discoloration / Flank-out / No-visible-defect / Other",
+  "observation_line": "ek engineering-style sentence, jaisa 'Pinion Gear side diff Bearing observed Pitting mark.'",
+  "confidence": "High / Medium / Low"
+}
+
+Agar part clearly identify nahi ho raha, "component" mein 'Manual check karo' likho.`);
+    parts[idx].data = result;
+    parts[idx].loading = false;
+  }catch(err){
+    // AI scan unavailable/failed — leave it blank & editable so the user can type it manually
+    parts[idx].data = { component:'Manual check karo', defect_type:'Manual check karo', observation_line:'', confidence:'-' };
+    parts[idx].loading = false;
+  }
+  renderParts();
+  checkReady();
+});
+
+function renderParts(){
+  partGrid.innerHTML = parts.map((p, i) => {
+    if (p.loading){
+      return `<div class="part-item"><img src="${p.imgSrc}"/><div class="obs"><div class="skeleton"><div class="sk-line" style="width:80%"></div><div class="sk-line" style="width:60%"></div></div></div></div>`;
+    }
+    const d = p.data;
+    const isDefect = d.defect_type && !/no-visible-defect|error|manual check/i.test(d.defect_type);
+    return `
+      <div class="part-item">
+        <img src="${p.imgSrc}"/>
+        <div class="obs">
+          <span class="tag ${isDefect ? 'defect':'ok'}">${esc(d.component)} · ${esc(d.defect_type)}</span>
+          <div class="line" contenteditable="true" data-idx="${i}">${esc(d.observation_line)}</div>
+          <select class="stage-select" data-stageidx="${i}">
+            <option value="teardown" ${p.stage==='teardown'?'selected':''}>Tear Down (disassembled)</option>
+            <option value="before" ${p.stage==='before'?'selected':''}>Before Tear Down (as received)</option>
+          </select>
+        </div>
+        <button class="remove-part" data-remove="${i}">Hatao</button>
+      </div>`;
+  }).join('');
+
+  partGrid.querySelectorAll('[data-stageidx]').forEach(sel => {
+    sel.addEventListener('change', () => {
+      parts[parseInt(sel.dataset.stageidx)].stage = sel.value;
+    });
+  });
+
+  partGrid.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      parts.splice(parseInt(btn.dataset.remove), 1);
+      renderParts();
+      checkReady();
+    });
+  });
+  partGrid.querySelectorAll('[contenteditable]').forEach(el => {
+    el.addEventListener('input', () => {
+      parts[parseInt(el.dataset.idx)].data.observation_line = el.textContent;
+    });
+  });
+
+  if (parts.length > 0){
+    step2Head.classList.add('done');
+    step2Head.querySelector('.badge').textContent = '✓';
+  } else {
+    step2Head.classList.remove('done');
+    step2Head.querySelector('.badge').textContent = '2';
+  }
+}
+
+function checkReady(){
+  const ready = cardData && parts.length > 0 && parts.every(p => !p.loading && p.data);
+  generateBtn.disabled = !ready;
+  generateBtn.textContent = ready ? 'Report Generate Karo →' : 'Pehle Card Aur Kam Se Kam 1 Part Photo Daalo';
+}
+
+generateBtn.addEventListener('click', () => {
+  const liveCard = {};
+  document.querySelectorAll('#cardFieldTable input').forEach(inp => liveCard[inp.dataset.key] = inp.value);
+
+  const today = new Date().toLocaleDateString('en-IN');
+  const reportNo = 'DAIPL-FA-' + Math.floor(1000+Math.random()*9000);
+
+  const defectParts = parts.filter(p => p.data.defect_type && !/no-visible-defect|error/i.test(p.data.defect_type));
+  const conclusionItems = parts.map(p => p.data.observation_line);
+  const finalNote = defectParts.length > 0
+    ? `Defect identified on ${defectParts.length} part(s) — affected component${defectParts.length>1?'s':''} ko replace karo, jab tak dimensional check mein full assembly NG na aaye, poora assembly scrap karne ki zaroorat nahi.`
+    : `Inspected parts mein koi clear visible defect nahi mila — dimensional/instrument check se confirm karo.`;
+
+  const causeMap = {};
+  defectParts.forEach(p => {
+    const t = (p.data.defect_type||'').toLowerCase();
+    if (t.includes('pit')) causeMap['Pitting Mark'] = 'Lubrication issue (insufficient/incorrect/contaminated lubricant, oil starvation) ya excess load/preload se ho sakta hai.';
+    else if (t.includes('scor')) causeMap['Scoring Mark'] = 'Inadequate lubrication, overheating, ya metal contamination ke wajah se metal-to-metal contact hota hai.';
+    else if (t.includes('wear')) causeMap['Wear'] = 'Normal service life ke baad ya improper lubrication/alignment se accelerated wear ho sakta hai.';
+    else if (t.includes('corro')) causeMap['Corrosion'] = 'Moisture ingress, seal failure, ya storage condition ke wajah se ho sakta hai.';
+    else if (t.includes('flank')) causeMap['Flank-out / Contact Pattern Issue'] = 'Incorrect gear setting, shim adjustment, ya backlash setting ke wajah se ho sakta hai — dimensional check zaroori hai.';
+  });
+
+  reportSection.innerHTML = `
+    <div style="height:22px"></div>
+    <div class="report">
+      <div class="report-cover">
+        <div class="footer-tag">Value Others &nbsp;|&nbsp; Inspire Innovation &nbsp;|&nbsp; Grow Responsibly &nbsp;|&nbsp; Win Together</div>
+        <svg class="r-logo" viewBox="0 0 100 60" fill="none"><path d="M50 4 L94 30 L50 56 L6 30 Z" stroke="#0073cf" stroke-width="5" fill="none"/></svg>
+        <h2>${esc(liveCard.causal_part_name || 'Part')} — Failure Analysis Report</h2>
+        <div class="model-line">Model — ${esc(liveCard.model || 'N/A')}</div>
+        <div class="claim-line">Claim No: ${esc(liveCard.claim_no || 'N/A')} &nbsp;·&nbsp; ${reportNo}</div>
+      </div>
+
+      <div class="report-section">
+        <h3>Failure History of the Vehicle</h3>
+        <table class="r-table">
+          <tr><td class="rk">Vin No.</td><td class="rv">${esc(liveCard.vin_no)}</td></tr>
+          <tr><td class="rk">Claim No.</td><td class="rv">${esc(liveCard.claim_no)}</td></tr>
+          <tr><td class="rk">Registration Date</td><td class="rv">${esc(liveCard.registration_date)}</td></tr>
+          <tr><td class="rk">Repair Date</td><td class="rv">${esc(liveCard.repair_date)}</td></tr>
+          <tr><td class="rk">Mileage</td><td class="rv">${esc(liveCard.mileage)}</td></tr>
+          <tr><td class="rk">Diff Assy Mfg. Date</td><td class="rv">${esc(liveCard.diff_assy_mfg_date)}</td></tr>
+          <tr><td class="rk">Customer Issue description</td><td class="rv">${esc(liveCard.customer_issue_description)}</td></tr>
+          <tr><td class="rk">Dealer Observation</td><td class="rv">${esc(liveCard.dealer_observation)}</td></tr>
+          <tr><td class="rk">Workshop Name</td><td class="rv">${esc(liveCard.workshop_name)}</td></tr>
+          <tr><td class="rk">Workshop Location</td><td class="rv">${esc(liveCard.workshop_location)}</td></tr>
+          <tr><td class="rk">Warranty Meeting Date</td><td class="rv">${esc(liveCard.warranty_meeting_date)}</td></tr>
+          <tr><td class="rk">Causal Part No.</td><td class="rv">${esc(liveCard.causal_part_no)}</td></tr>
+          <tr><td class="rk">Causal Part Name</td><td class="rv">${esc(liveCard.causal_part_name)}</td></tr>
+        </table>
+        <img class="card-thumb" src="${cardImgB64}"/>
+      </div>
+
+      <div class="report-section">
+        <h3>Dimensional Observations <span style="font-size:10.5px; font-weight:600; color:var(--amber);">(manual entry — instrument data)</span></h3>
+        <table class="r-table dim-table">
+          <tr style="background:var(--navy);">
+            <td class="rk" style="color:#fff; font-weight:700;">Parameter</td>
+            <td class="rv" style="color:#fff; font-weight:700;">Build Data</td>
+            <td class="rv" style="color:#fff; font-weight:700;">Returned Part</td>
+            <td class="rv" style="color:#fff; font-weight:700;">Gap</td>
+            <td class="rv" style="color:#fff; font-weight:700;">Remarks</td>
+          </tr>
+          ${[
+            "CS Number","MFG Date","Gear No","TTTR","PTTR",
+            "Contact Pattern (Cost & Drive side)","Backlash","Shim Call","Shim Actual",
+            "CF Runout","Leak Testing","Lock Plate Torque","Thread Adjuster Torq",
+            "Bearing Cap Torq","Collapsable Spacer Length"
+          ].map(param => `
+          <tr>
+            <td class="rk">${param}</td>
+            <td class="rv"><input placeholder="--"/></td>
+            <td class="rv"><input placeholder="--"/></td>
+            <td class="rv"><input placeholder="--"/></td>
+            <td class="rv"><input placeholder="OK/NG"/></td>
+          </tr>`).join('')}
+        </table>
+        <div class="manual-note">Yeh values measuring instrument se aati hain — gauge ki digital screen ki photo se bhi padhna future mein add ho sakta hai.</div>
+      </div>
+
+      ${(() => {
+        const beforeParts = parts.filter(p => p.stage === 'before');
+        const teardownParts = parts.filter(p => p.stage !== 'before');
+        const renderPhotoRow = (list) => list.map(p => {
+          const isDefect = p.data.defect_type && !/no-visible-defect|error/i.test(p.data.defect_type);
+          return `
+            <div class="r-photo-item">
+              <img src="${p.imgSrc}"/>
+              <div>
+                <span class="r-obs-tag" style="background:${isDefect?'#fbe3e0':'#dff3e6'}; color:${isDefect?'var(--red)':'var(--green)'};">${esc(p.data.component)}</span>
+                <div class="r-obs-text">${esc(p.data.observation_line)}</div>
+              </div>
+            </div>`;
+        }).join('');
+        let html = '';
+        if (beforeParts.length){
+          html += `
+          <div class="report-section">
+            <h3>Visual Check — Before Tear Down</h3>
+            <div class="r-photo-row">${renderPhotoRow(beforeParts)}</div>
+          </div>`;
+        }
+        if (teardownParts.length){
+          html += `
+          <div class="report-section">
+            <h3>Visual Check — Tear Down</h3>
+            <div class="r-photo-row">${renderPhotoRow(teardownParts)}</div>
+          </div>`;
+        }
+        return html;
+      })()}
+
+      <div class="report-section">
+        <h3>Conclusion</h3>
+        <ol class="conclusion-list">
+          ${conclusionItems.map(i => `<li>${esc(i)}</li>`).join('')}
+          <li class="action">${esc(finalNote)}</li>
+        </ol>
+      </div>
+
+      ${Object.keys(causeMap).length ? `
+      <div class="report-section">
+        <h3>Potential Root Causes</h3>
+        ${Object.entries(causeMap).map(([k,v]) => `
+          <div class="cause-card"><div class="cc-title">${esc(k)}</div><div class="cc-desc">${esc(v)}</div></div>
+        `).join('')}
+      </div>` : ''}
+
+      <div class="report-footer">
+        <span>Generated ${today}</span>
+        <span>DAIPL · Dharuhera Plant</span>
+      </div>
+    </div>
+    <div style="height:14px"></div>
+    <button class="btn btn-pdf" id="pdfBtn" onclick="downloadPDF()">⬇️ Download as PDF</button>
+  `;
+  reportSection.scrollIntoView({behavior:'smooth', block:'start'});
+
+  // Auto-save to Firestore history
+  try{
+    db.collection('reports').add({
+      vin_no: liveCard.vin_no||'',
+      claim_no: liveCard.claim_no||'',
+      model: liveCard.model||'',
+      causal_part_name: liveCard.causal_part_name||'',
+      causal_part_no: liveCard.causal_part_no||'',
+      registration_date: liveCard.registration_date||'',
+      repair_date: liveCard.repair_date||'',
+      mileage: liveCard.mileage||'',
+      diff_assy_mfg_date: liveCard.diff_assy_mfg_date||'',
+      customer_issue_description: liveCard.customer_issue_description||'',
+      dealer_observation: liveCard.dealer_observation||'',
+      workshop_name: liveCard.workshop_name||'',
+      workshop_location: liveCard.workshop_location||'',
+      warranty_meeting_date: liveCard.warranty_meeting_date||'',
+      reportNo: reportNo,
+      conclusionItems: conclusionItems,
+      finalNote: finalNote,
+      causeMap: causeMap,
+      createdBy: (auth.currentUser && auth.currentUser.email)||'unknown',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      status: 'Pending'
+    });
+  }catch(e){ console.warn('Auto-save failed:', e.message); }
+});
+
+async function downloadPDF(){
+  const btn = document.getElementById('pdfBtn');
+  const el = document.querySelector('.report');
+  btn.disabled = true;
+  btn.textContent = 'PDF Banaya Ja Raha Hai...';
+  try{
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = 210, pageHeight = 297;
+    const imgWidth = pageWidth;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+    while (heightLeft > 0){
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+    const vin = (document.querySelector('#cardFieldTable input[data-key="vin_no"]')||{}).value || 'report';
+    pdf.save(`DANA-Failure-Report-${vin}.pdf`);
+  }catch(err){
+    showErr('PDF banane mein error: ' + err.message);
+  }
+  btn.disabled = false;
+  btn.textContent = '⬇️ Download as PDF';
+}
+</script>
+</body>
+</html>
